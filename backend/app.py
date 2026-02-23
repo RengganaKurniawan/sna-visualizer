@@ -13,7 +13,12 @@ CORS(app)
 def extract_interactions(raw_data):
     tweets_data = raw_data.get('data', [])
     includes_data = raw_data.get('includes', {})
+    
+    # buat cari author dari referenced tweet
     original_tweets_lookup = {tweet['id']: tweet for tweet in includes_data.get('tweets', [])}
+
+    # buat label usename di node
+    users_lookup = {user['id']: user for user in includes_data.get('users', [])}
 
     interactions = []
 
@@ -25,24 +30,30 @@ def extract_interactions(raw_data):
         # ambil reply
         if tweet.get('in_reply_to_user_id'):
             target_id = tweet.get('in_reply_to_user_id')
-            
-            # cek reply diri sendiri (thread)
             if source_id != target_id:
-                interactions.append({'source': source_id, 'target': target_id, 'type': 'reply'})
-
-        # ambil quote
+                interactions.append({
+                    'source': source_id, 
+                    'target': target_id,
+                    'type': 'reply'
+                })
+            
+        # ambil retweet dan quote
         if 'referenced_tweets' in tweet:
             for ref_tweet in tweet['referenced_tweets']:
                 ref_type = ref_tweet.get('type')
+                
+                if ref_type == 'replied_to':
+                    continue
+
                 original_tweet = original_tweets_lookup.get(ref_tweet.get('id'))
 
                 target_id = None
                 if not original_tweet and ref_type == 'retweeted':
-                    # cek original retweet masih ada/available
-                    if 'entities' in tweet and 'mentions' in tweet['entities'] and tweet['entities']['mentions']:
-                        # author paling atas
-                        original_author_mention = tweet['entities']['mentions'][0]
-                        target_id = original_author_mention.get('id')
+                    # original tweet ga ada di includes antara dihapus/priv account
+                    # cek ke mention pertama karena author
+                    mentions = tweet.get('entities', {}).get('mentions', [])
+                    if mentions:
+                        target_id = mentions[0].get('id')
                     else:
                         continue
                 elif original_tweet:
@@ -52,21 +63,39 @@ def extract_interactions(raw_data):
 
                 if target_id and source_id != target_id:
                     if ref_type == 'retweeted':
-                        interactions.append({'source': source_id, 'target': target_id, 'type': 'retweet'})
+                        interactions.append({
+                            'source': source_id,
+                            'target': target_id,
+                            'type': 'retweet'
+                        })
                     elif ref_type == 'quoted':
-                        interactions.append({'source': source_id, 'target': target_id, 'type': 'quote'})
+                        interactions.append({
+                            'source': source_id,
+                            'target': target_id,
+                            'type': 'quote'
+                        })
+                    
 
         # ambil mention
+
+        # skip (RT @) karena bukan mention asli
         is_retweet = tweet.get('text', '').startswith('RT @')
         if not is_retweet and 'entities' in tweet and 'mentions' in tweet['entities']:
-            # ambol user yang direply
+            
+            # ambil user yang reply
             reply_target_id = tweet.get('in_reply_to_user_id')
             for mention in tweet['entities']['mentions']:
                 target_id = mention.get('id')
+                
+                #skip diri sendiri dan target reply
                 if target_id and source_id != target_id and (not reply_target_id or target_id != reply_target_id):
-                    interactions.append({'source': source_id, 'target': target_id, 'type': 'mentions'})
+                    interactions.append({
+                        'source': source_id, 
+                        'target': target_id, 
+                        'type': 'mentions'
+                    })
 
-    return interactions
+    return interactions, users_lookup
 
 @app.route('/api/process', methods=['POST'])
 def process_data():
@@ -80,53 +109,62 @@ def process_data():
     
     try:
         raw_data = json.load(file.stream)
-        interactions = extract_interactions(raw_data)
+        interactions, users_lookup = extract_interactions(raw_data)
 
         if not interactions:
             return jsonify({"error": "Tidak ada interaksi valid"}), 400
         
         df = pd.DataFrame(interactions)
 
-        required_cols_for_drop = ['source', 'target', 'type']
-        if not all(col in df.columns for col in required_cols_for_drop):
-             missing_cols = [col for col in required_cols_for_drop if col not in df.columns]
-             print(f"ERROR: Missing columns for drop_duplicates: {missing_cols}")
-             return jsonify({"error": f"Kolom hilang saat pemrosesan: {missing_cols}"}), 500
-
-        df.drop_duplicates(subset=['source', 'target', 'type'], inplace=True)
+        # edge weight, menghitung interaksi setiap pasang source, target, type
+        df = (
+            df.groupby(['source', 'target', 'type'])
+            .size()
+            .reset_index(name='weight')
+        )
 
         if df.empty:
-            return jsonify({"error": "tidak ada interaksi"}), 400
+            return jsonify({"error": "Tidak ada interaksi setelah agregasi"}), 400
         
-        # buat graf
-        graph = nx.from_pandas_edgelist(df, 'source', 'target', edge_attr=['type'], create_using=nx.DiGraph())
+        # buat graph
+        graph = nx.from_pandas_edgelist(
+            df, 'source', 'target',
+            edge_attr=['type', 'weight'],
+            create_using=nx.DiGraph()
+        )
 
-        # analisis sentralitas
-        in_degree_centrality = nx.in_degree_centrality(graph)
-        nx.set_node_attributes(graph, in_degree_centrality, 'in_degree_centrality')
+        # sentralitas
+        nx.set_node_attributes(graph, nx.in_degree_centrality(graph),  'in_degree_centrality')
+        nx.set_node_attributes(graph, nx.out_degree_centrality(graph), 'out_degree_centrality')
 
-        out_degree_centrality = nx.out_degree_centrality(graph)
-        nx.set_node_attributes(graph, out_degree_centrality, 'out_degree_centrality')
-
-        # analisis deteksi komunitas
+        # deteksi komunitas
         if graph.number_of_edges() > 0:
-            graph_undirected = graph.to_undirected()
-            partition = community_louvain.best_partition(graph_undirected)
+            partition = community_louvain.best_partition(graph.to_undirected())
             nx.set_node_attributes(graph, partition, 'community')
         else:
             nx.set_node_attributes(graph, 0, 'community')
 
-        # label attribute
-        labels = {node: str(node) for node in graph.nodes()}
-        nx.set_node_attributes(graph, labels, 'label')
-
-        # networkX ke Cytoscape
+        # username label
+        for node in graph.nodes():
+            user = users_lookup.get(node, {})
+            graph.nodes[node]['label'] = user.get('username', str(node))
+            graph.nodes[node]['name']     = user.get('name', '')
+            graph.nodes[node]['username'] = user.get('username', str(node))
+        
+        # export ke Cytoscape
         graph_frontend = nx.cytoscape_data(graph)
 
+        # pastikan tipe primitif
         for element in graph_frontend.get('elements', {}).get('nodes', []):
-            element['data'] = {k: (v if isinstance(v, (str, int, float, bool)) else str(v)) for k, v in element.get('data', {}).items()}
+            element['data'] = {
+                k: (v if isinstance(v, (str, int, float, bool)) else str(v))
+                for k, v in element.get('data', {}).items()
+            }
         for element in graph_frontend.get('elements', {}).get('edges', []):
-            element['data'] = {k: (v if isinstance(v, (str, int, float, bool)) else str(v)) for k, v in element.get('data', {}).items()}
+            element['data'] = {
+                k: (v if isinstance(v, (str, int, float, bool)) else str(v))
+                for k, v in element.get('data', {}).items()
+            }
 
         return jsonify(graph_frontend)
     
