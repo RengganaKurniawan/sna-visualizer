@@ -29,6 +29,29 @@ function TestGraph() {
     const [error, setError] = useState<string | null>(null);
     const cyRef = useRef<HTMLDivElement | null>(null);
     const cyInstance = useRef<cytoscape.Core | null>(null);
+    const [showCommunity, setShowCommunity] = useState(true);
+    const [selectedNode, setSelectedNode] = useState<{
+        username: string;
+        name: string;
+        tweets: { id: string; text: string; created_at: string; metrics: any }[];
+    } | null>(null);
+
+    const handleToggleCommunity = () => {
+        setShowCommunity(prev => {
+            const next = !prev;
+            if (cyInstance.current) {
+                cyInstance.current.nodes().forEach((node) => {
+                    node.style(
+                        "background-color",
+                        next
+                            ? COMMUNITY_COLORS[node.data("community") % COMMUNITY_COLORS.length] ?? "#A0A0A0"
+                            : "#A0A0A0"
+                    );
+                });
+            }
+            return next;
+        });
+    };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -94,8 +117,8 @@ function TestGraph() {
                         "text-valign": "bottom",
                         "text-halign": "center",
                         "background-color": "data(communityColor)",
-                        width: "mapData(in_degree_centrality, 0, 1, 15, 80)",
-                        height: "mapData(in_degree_centrality, 0, 1, 15, 80)",
+                        width: "mapData(in_degree_centrality, 0, 1, 15, 100)",
+                        height: "mapData(in_degree_centrality, 0, 1, 15, 100)",
                     },
                 },
                 {
@@ -115,13 +138,28 @@ function TestGraph() {
                 // idealEdgeLength: 150,        // jarak ideal antar node yang terhubung
                 nodeOverlap: 20,             // seberapa jauh node didorong saat overlap
                 componentSpacing: 150,       // jarak antar cluster/komponen terpisah
-                nodeRepulsion: 800000,       // semakin besar = node makin saling menjauh
+                nodeRepulsion: 10000,       // semakin besar = node makin saling menjauh
             },
+        });
+
+        cyInstance.current.on("tap", "node", (evt) => {
+            const node = evt.target;
+            const rawTweets = node.data("tweets");
+            const tweets = rawTweets ? JSON.parse(rawTweets) : [];
+            setSelectedNode({
+                username: node.data("username"),
+                name: node.data("name"),
+                tweets,
+            });
+        });
+
+        cyInstance.current.on("tap", (evt) => {
+            if (evt.target === cyInstance.current) setSelectedNode(null);
         });
     }, [graph]);
 
     return(
-        <div style={{ padding: "24px" }}>
+        <div style={{ padding: "24px", overflow: "hidden" }}>
             <h1>Graph Visualization</h1>
 
             <input
@@ -143,24 +181,75 @@ function TestGraph() {
                             {type}
                         </span>
                     ))}
+
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer", marginLeft: "auto" }}>
+                        <input
+                            type="checkbox"
+                            checked={showCommunity}
+                            onChange={handleToggleCommunity}
+                        />
+                        Show Community
+                    </label>
                 </div>
             )}
 
-            <div
-                ref={cyRef}
-                style={{
-                    width: "100%",
-                    height: "900px",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                    background: "#fafafa",
-                    display: graph ? "block" : "none",
-                }}
-            />
+            <div style={{ display: "flex", gap: "16px", alignItems: "flex-start", width: "100%" }}>
+                <div
+                    ref={cyRef}
+                    style={{
+                        flex: 1,
+                        minWidth: 0,
+                        height: "500px",
+                        border: "1px solid #ccc",
+                        borderRadius: "4px",
+                        background: "#fafafa",
+                        display: graph ? "block" : "none",
+                    }}
+                />
 
-            {!graph && !loading && !error && (
-                <p style={{ color: "#888" }}>Upload a JSON file to visualize the graph.</p>
-            )}
+                {selectedNode && (
+                    <div style={{
+                        width: "300px",
+                        height: "600px",
+                        border: "1px solid #ccc",
+                        borderRadius: "4px",
+                        padding: "16px",
+                        overflowY: "auto",
+                        flexShrink: 0,
+                    }}>
+                        <h3 style={{ margin: "0 0 4px" }}>@{selectedNode.username}</h3>
+                        <p style={{ margin: "0 0 12px", color: "#666", fontSize: "13px" }}>{selectedNode.name}</p>
+                        <hr />
+                        {selectedNode.tweets.length === 0 ? (
+                            <p style={{ color: "#888", fontSize: "13px" }}>No tweets captured for this user.</p>
+                        ) : (
+                            selectedNode.tweets.map((tweet) => (
+                                <div key={tweet.id} style={{
+                                    marginBottom: "12px",
+                                    paddingBottom: "12px",
+                                    borderBottom: "1px solid #eee",
+                                    fontSize: "13px",
+                                }}>
+                                    <p style={{ margin: "0 0 4px" }}>{tweet.text}</p>
+                                    <span style={{ color: "#999", fontSize: "11px" }}>
+                                        {new Date(tweet.created_at).toLocaleString()}
+                                    </span>
+                                    {tweet.metrics && (
+                                        <div style={{ display: "flex", gap: "10px", marginTop: "4px", fontSize: "11px", color: "#666" }}>
+                                            <span>🔁 {tweet.metrics.retweet_count}</span>
+                                            <span>💬 {tweet.metrics.reply_count}</span>
+                                            <span>❤️ {tweet.metrics.like_count}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+                {!graph && !loading && !error && (
+                    <p style={{ color: "#888" }}>Upload a JSON file to visualize the graph.</p>
+                )}
+            </div>
         </div>
     )
 }

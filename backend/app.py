@@ -95,7 +95,7 @@ def extract_interactions(raw_data):
                         'type': 'mentions'
                     })
 
-    return interactions, users_lookup
+    return interactions, users_lookup, tweets_data
 
 @app.route('/api/process', methods=['POST'])
 def process_data():
@@ -109,7 +109,7 @@ def process_data():
     
     try:
         raw_data = json.load(file.stream)
-        interactions, users_lookup = extract_interactions(raw_data)
+        interactions, users_lookup, tweets_data = extract_interactions(raw_data)
 
         if not interactions:
             return jsonify({"error": "Tidak ada interaksi valid"}), 400
@@ -150,6 +150,28 @@ def process_data():
             graph.nodes[node]['label'] = user.get('username', str(node))
             graph.nodes[node]['name']     = user.get('name', '')
             graph.nodes[node]['username'] = user.get('username', str(node))
+
+        # attach tweet to user (tweet can be more than one per user)
+        user_tweets = {}
+        for tweet in tweets_data:
+            author_id = tweet.get('author_id')
+            if not author_id:
+                continue
+            if author_id not in user_tweets:
+                user_tweets[author_id] = []
+            user_tweets[author_id].append({
+                'id':         tweet.get('id', ''),
+                'text':       tweet.get('text', ''),
+                'created_at': tweet.get('created_at', ''),
+                'metrics':    tweet.get('public_metrics', {}),
+            })
+        
+        for node in graph.nodes():
+            tweets = user_tweets.get(node, [])
+            
+            graph.nodes[node]['tweets'] = json.dumps(tweets, ensure_ascii=False)
+            graph.nodes[node]['tweet_count'] = len(tweets)
+
         
         # export ke Cytoscape
         graph_frontend = nx.cytoscape_data(graph)
