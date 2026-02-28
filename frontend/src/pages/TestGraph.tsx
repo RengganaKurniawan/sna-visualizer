@@ -12,8 +12,18 @@ type GraphData = {
 };
 
 const COMMUNITY_COLORS = [
-    "#4C9BE8", "#E8724C", "#4CE87A", "#E8D94C",
-    "#B44CE8", "#4CE8D9", "#E84C8B", "#A0A0A0",
+    "#E63946", // red
+    "#2196F3", // blue
+    "#4CAF50", // green
+    "#FF9800", // orange
+    "#9C27B0", // purple
+    "#00BCD4", // cyan
+    "#FFEB3B", // yellow
+    "#F06292", // pink
+    "#795548", // brown
+    "#607D8B", // blue-grey
+    "#00E676", // bright green
+    "#FF6D00", // deep orange
 ]
 
 const EDGE_COLORS: Record<string, string> = {
@@ -29,29 +39,73 @@ function TestGraph() {
     const [error, setError] = useState<string | null>(null);
     const cyRef = useRef<HTMLDivElement | null>(null);
     const cyInstance = useRef<cytoscape.Core | null>(null);
-    const [showCommunity, setShowCommunity] = useState(true);
+    const [showCommunity, setShowCommunity] = useState(false);
     const [selectedNode, setSelectedNode] = useState<{
         username: string;
         name: string;
         tweets: { id: string; text: string; created_at: string; metrics: any }[];
     } | null>(null);
+    const [edgeMode, setEdgeMode] = useState<"typed" | "collapsed">("typed");
+    const detailedEdgesRef = useRef<EdgeDefinition[]>([]);
+    const collapsedEdgesRef = useRef<EdgeDefinition[]>([]);
+    const communityIdsRef = useRef<number[]>([]);
 
     const handleToggleCommunity = () => {
         setShowCommunity(prev => {
             const next = !prev;
-            if (cyInstance.current) {
-                cyInstance.current.nodes().forEach((node) => {
-                    node.style(
-                        "background-color",
-                        next
-                            ? COMMUNITY_COLORS[node.data("community") % COMMUNITY_COLORS.length] ?? "#A0A0A0"
-                            : "#A0A0A0"
-                    );
+            if (!cyInstance.current) return next;
+
+            if (next) {
+                communityIdsRef.current.forEach(cid => {
+                    if (!cyInstance.current!.$(`#community_${cid}`).length) {
+                        cyInstance.current!.add({
+                            group: "nodes",
+                            data: { id: `community_${cid}` }
+                        });
+                    }
                 });
+                cyInstance.current.nodes().filter(n => !n.isParent()).forEach(node => {
+                    node.move({ parent: `community_${node.data('community')}` });
+                    node.style('background-color', COMMUNITY_COLORS[node.data('community') % COMMUNITY_COLORS.length] ?? '#A0A0A0');
+                });
+            } else {
+                cyInstance.current.nodes().filter(n => !n.isParent()).forEach(node => {
+                    node.move({ parent: null });
+                    node.style('background-color', '#A0A0A0');
+                });
+                communityIdsRef.current.forEach(cid => {
+                    cyInstance.current!.$(`#community_${cid}`).remove();
+                })
             }
+
+            // cyInstance.current.layout({
+            //     name: 'cose',
+            //     // @ts-ignore
+            //     // nodeOverlap: 20,
+            //     // // componentSpacing: 50,
+            //     // nodeRepulsion: 5000,
+            // }).run();
+
             return next;
         });
     };
+
+    const handleToggleEdgeMode = () => {
+        setEdgeMode(prev => {
+            const next = prev === "typed" ? "collapsed" : "typed";
+            if (cyInstance.current) {
+                cyInstance.current.edges().remove();
+                const newEdges = next === "typed"
+                    ? detailedEdgesRef.current
+                    : collapsedEdgesRef.current;
+                cyInstance.current.add(newEdges);
+                cyInstance.current.style().update();
+            }
+            return next;
+        });
+    }
+
+    
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -60,6 +114,7 @@ function TestGraph() {
         setLoading(true);
         setError(null);
         setGraph(null);
+        setShowCommunity(false);
 
         if (cyInstance.current) {
             cyInstance.current.destroy();
@@ -105,20 +160,54 @@ function TestGraph() {
             },
         }));
 
+        detailedEdgesRef.current = edges;
+
+        const edgeMap = new Map<string, EdgeDefinition>();
+        edges.forEach((edge) => {
+            const key = `${edge.data!.source}__${edge.data!.target}`;
+            if (edgeMap.has(key)) {
+                const existing = edgeMap.get(key)!;
+                existing.data!.weight = (Number(existing.data!.weight) || 1) + (Number(edge.data!.weight) || 1);
+            } else {
+                edgeMap.set(key, {
+                    data: {
+                        id: `collapsed__${edge.data!.source}__${edge.data!.target}`,
+                        source: edge.data!.source,
+                        target: edge.data!.target,
+                        weight: Number(edge.data!.weight) || 1,
+                        edgeColor: "#999999"
+                    }
+                });
+            }
+        });
+        collapsedEdgesRef.current = Array.from(edgeMap.values());
+        communityIdsRef.current = [...new Set(nodes.map(n => n.data!.community as number))];
+
         cyInstance.current = cytoscape({
             container: cyRef.current,
             elements: { nodes, edges },
             style: [
                 {
-                    selector: "node",
+                    selector: "node[in_degree_centrality]",
                     style: {
                         label: "data(label)",
                         "font-size": "10px",
                         "text-valign": "bottom",
                         "text-halign": "center",
-                        "background-color": "data(communityColor)",
+                        "background-color": "#A0A0A0",
                         width: "mapData(in_degree_centrality, 0, 1, 15, 100)",
                         height: "mapData(in_degree_centrality, 0, 1, 15, 100)",
+                    },
+                },
+                {
+                    selector: ":parent",
+                    style: {
+                        label: "",
+                        "background-color": "#cccccc",
+                        "background-opacity": 0.1,          // transparan supaya tidak mengganggu
+                        "border-width": 2,
+                        "border-color": "#ccc",
+                        "border-style": "dashed",
                     },
                 },
                 {
@@ -136,14 +225,16 @@ function TestGraph() {
             layout: { 
                 name: "cose",
                 // idealEdgeLength: 150,        // jarak ideal antar node yang terhubung
-                nodeOverlap: 20,             // seberapa jauh node didorong saat overlap
-                componentSpacing: 150,       // jarak antar cluster/komponen terpisah
-                nodeRepulsion: 10000,       // semakin besar = node makin saling menjauh
+                nodeOverlap: 100,             // seberapa jauh node didorong saat overlap
+                componentSpacing: 100,       // jarak antar cluster/komponen terpisah
+                nodeRepulsion: 50000,       // semakin besar = node makin saling menjauh
             },
         });
 
         cyInstance.current.on("tap", "node", (evt) => {
             const node = evt.target;
+            if (node.isParent()) return;
+            
             const rawTweets = node.data("tweets");
             const tweets = rawTweets ? JSON.parse(rawTweets) : [];
             setSelectedNode({
@@ -189,6 +280,15 @@ function TestGraph() {
                             onChange={handleToggleCommunity}
                         />
                         Show Community
+                    </label>
+
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
+                        <input
+                            type="checkbox"
+                            checked={edgeMode === "collapsed"}
+                            onChange={handleToggleEdgeMode}
+                        />
+                        Collapse Edges
                     </label>
                 </div>
             )}

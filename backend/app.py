@@ -13,16 +13,21 @@ CORS(app)
 def extract_interactions(raw_data):
     tweets_data = raw_data.get('data', [])
     includes_data = raw_data.get('includes', {})
+    includes_tweets = includes_data.get('tweets', [])
     
     # buat cari author dari referenced tweet
-    original_tweets_lookup = {tweet['id']: tweet for tweet in includes_data.get('tweets', [])}
-
+    original_tweets_lookup = {tweet['id']: tweet for tweet in includes_tweets}
+    
     # buat label usename di node
     users_lookup = {user['id']: user for user in includes_data.get('users', [])}
 
+    all_tweet_ids = {t['id'] for t in tweets_data}
+    unique_includes = [t for t in includes_tweets if t['id'] not in all_tweet_ids]
+    all_tweets_for_interaction = tweets_data + unique_includes
+
     interactions = []
 
-    for tweet in tweets_data:
+    for tweet in all_tweets_for_interaction:
         source_id = tweet.get('author_id')
         if not source_id:
             continue
@@ -84,7 +89,13 @@ def extract_interactions(raw_data):
             
             # ambil user yang reply
             reply_target_id = tweet.get('in_reply_to_user_id')
-            for mention in tweet['entities']['mentions']:
+            mentions = tweet['entities']['mentions']
+
+            if not reply_target_id and mentions and tweet.get('text', '').startswith('@'):
+                reply_target_id = mentions[0].get('id')
+            
+            
+            for mention in mentions:
                 target_id = mention.get('id')
                 
                 #skip diri sendiri dan target reply
@@ -130,7 +141,7 @@ def process_data():
         graph = nx.from_pandas_edgelist(
             df, 'source', 'target',
             edge_attr=['type', 'weight'],
-            create_using=nx.DiGraph()
+            create_using=nx.MultiDiGraph()
         )
 
         # sentralitas
@@ -152,8 +163,14 @@ def process_data():
             graph.nodes[node]['username'] = user.get('username', str(node))
 
         # attach tweet to user (tweet can be more than one per user)
+        includes_tweets = raw_data.get('includes', {}).get('tweets', [])
+        all_tweet_ids = {t['id'] for t in tweets_data}
+        unique_includes = [t for t in includes_tweets if t['id'] not in all_tweet_ids]
+        
+        all_tweets = tweets_data + unique_includes
+        
         user_tweets = {}
-        for tweet in tweets_data:
+        for tweet in all_tweets:
             author_id = tweet.get('author_id')
             if not author_id:
                 continue
