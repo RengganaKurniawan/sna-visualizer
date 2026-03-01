@@ -50,7 +50,7 @@ function TestGraph() {
         name: string;
         tweets: { id: string; text: string; created_at: string; metrics: any }[];
     } | null>(null);
-    const [edgeMode, setEdgeMode] = useState<"typed" | "collapsed">("typed");
+    const [edgeMode, setEdgeMode] = useState<"typed" | "collapsed">("collapsed");
     const detailedEdgesRef = useRef<EdgeDefinition[]>([]);
     const collapsedEdgesRef = useRef<EdgeDefinition[]>([]);
     const communityIdsRef = useRef<number[]>([]);
@@ -190,7 +190,7 @@ function TestGraph() {
 
         cyInstance.current = cytoscape({
             container: cyRef.current,
-            elements: { nodes, edges },
+            elements: { nodes, edges: collapsedEdgesRef.current },
             style: [
                 {
                     selector: "node[in_degree_centrality]",
@@ -232,7 +232,7 @@ function TestGraph() {
                 // idealEdgeLength: 150,        // jarak ideal antar node yang terhubung
                 nodeOverlap: 100,             // seberapa jauh node didorong saat overlap
                 componentSpacing: 100,       // jarak antar cluster/komponen terpisah
-                nodeRepulsion: 50000,       // semakin besar = node makin saling menjauh
+                nodeRepulsion: 100000,       // semakin besar = node makin saling menjauh
             },
         });
 
@@ -344,8 +344,8 @@ function TestGraph() {
                                 <ToggelSwitch checked={showCommunity} onChange={handleToggleCommunity} />    
                             </div>
                             <div className="tg-toggle-row">
-                                <span className="tg-toggle-label">Collapse Edges</span>
-                                <ToggelSwitch checked={edgeMode === "collapsed"} onChange={handleToggleEdgeMode} />
+                                <span className="tg-toggle-label">Show interactions</span>
+                                <ToggelSwitch checked={edgeMode === "typed"} onChange={handleToggleEdgeMode} />
                             </div>
                         </div>
                     </div>
