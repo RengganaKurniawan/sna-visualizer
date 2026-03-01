@@ -1,0 +1,402 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body, html { overflow: hidden; }
+
+.tg-root {
+    font-family: 'Space Mono', monospace;
+    background: #0a0c10;
+    color: #c8d0e0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* HEADER */
+.tg-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    background: rgba(10,12,16,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    z-index: 100;
+    gap: 14px;
+}
+
+.tg-header-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4CE87A;
+    box-shadow: 0 0 8px #4CE87A;
+    flex-shrink: 0;
+    animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.tg-header-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #eef2ff;
+    flex: 1;
+}
+
+.tg-header-meta {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: #4a5568;
+    text-transform: uppercase;
+}
+
+/* CANVAS */
+.tg-canvas {
+    position: fixed;
+    top: 52px; left: 0; right: 0; bottom: 0;
+    /* background: #0a0c10; */
+    background: #eef2ff;
+    background-image:
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(33,150,243,0.04) 0%, transparent 70%),
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+    z-index: 0;
+}
+
+/* CANVAS PLACEHOLDER */
+.tg-canvas-placeholder {
+    position: fixed;
+    top: 52px; left: 0; right: 280px; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.tg-placeholder-icon {
+    font-size: 48px;
+    opacity: 0.08;
+    margin-bottom: 16px;
+}
+
+.tg-placeholder-text {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #2a3040;
+}
+
+/* RIGHT PANEL */
+.tg-panel {
+    position: fixed;
+    top: 52px; right: 0; bottom: 0;
+    width: 280px;
+    background: rgba(12,14,20,0.92);
+    backdrop-filter: blur(16px);
+    border-left: 1px solid rgba(255,255,255,0.07);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tg-panel-section {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.tg-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #3a4558;
+    margin-bottom: 12px;
+}
+
+/* FILE UPLOAD */
+.tg-upload-area {
+    position: relative;
+    border: 1px dashed rgba(76,155,232,0.35);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.tg-upload-area:hover {
+    border-color: rgba(76,155,232,0.7);
+    background: rgba(76,155,232,0.04);
+}
+
+.tg-upload-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+.tg-upload-icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.tg-upload-text {
+    font-size: 11px;
+    color: #4C9BE8;
+    line-height: 1.5;
+}
+
+.tg-upload-hint {
+    font-size: 10px;
+    color: #3a4558;
+    margin-top: 4px;
+}
+
+.tg-status {
+    margin-top: 10px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tg-status.loading { color: #E8D94C; }
+.tg-status.error   { color: #E63946; }
+.tg-status.success { color: #4CE87A; }
+
+.tg-status-spinner {
+    width: 10px; height: 10px;
+    border: 1.5px solid transparent;
+    border-top-color: #E8D94C;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* LEGEND */
+.tg-legend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.tg-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: "#8899aa";
+    letter-spacing: 0.4em;
+}
+
+.tg-legend-line {
+    width: 24px;
+    height: 2.5px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* TOGGLES */
+.tg-toggle-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tg-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.tg-toggle-label {
+    font-size: 11px;
+    color: #8899aa;
+    letter-spacing: 0.04em;
+    user-select: none;
+    cursor: pointer;
+}
+
+/* Custom toggle switch */
+.tg-switch {
+    position: relative;
+    width: 34px; height: 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.tg-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+.tg-switch-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 9px;
+    background: #1a2030;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: background 0.2s;
+}
+
+.tg-switch input:checked ~ .tg-switch-track {
+    background: rgba(76,232,122,0.2);
+    border-color: rgba(76,232,122,0.4);
+}
+
+.tg-switch-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #3a4558;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.tg-switch input:checked ~ .tg-switch-track ~ .tg-switch-thumb,
+.tg-switch input:checked + .tg-switch-track + .tg-switch-thumb {
+    transform: translateX(16px);
+    background: #4CE87A;
+    box-shadow: 0 0 6px #4CE87A88;
+}
+
+/* NODE DETAIL */
+.tg-node-float {
+    position: fixed;
+    top: 52px;
+    right: 280px;
+    bottom: 0;
+    width: 300px;
+    background: rgba(10, 12, 18, 0.96);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(76, 155, 232, 0.15);
+    border-top: 1px solid rgba(76, 155, 232, 0.1);
+    z-index: 49;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
+}
+
+.tg-node-float--visible {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: all;
+}
+
+.tg-node-float .tg-tweet-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.tg-node-panel::-webkit-scrollbar { width: 4px; }
+.tg-node-panel::-webkit-scrollbar-track { background: transparent; }
+.tg-node-panel::-webkit-scrollbar-thumb { background: #1e2535; border-radius: 2px; }
+
+.tg.node-float-close {
+    background: none;
+    border: none;
+    color: #3a4558;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+    transition: color 0.15s;
+    flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+}
+
+.tg-node-float-close:hover {
+    color: #E63946;
+}
+
+.tg-node-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.tg-node-username {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #4C9BE8;
+    letter-spacing: 0.04em;
+}
+
+.tg-node-name {
+    font-size: 10px;
+    color: #3a4558;
+    margin-top: 3px;
+    letter-spacing: 0.06em;
+}
+
+.tg-tweet-list {
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px
+}
+
+.tg-tweet {
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.015);
+    transition: border-color 0.15s;
+}
+
+.tg-tweet:hover { border-color: rgba(76,155,232,0.25);}
+
+.tg-tweet-text {
+    font-size: 11px;
+    line-height: 1.6;
+    color: #c0ccd8;
+    margin-bottom: 6px;
+}
+
+.tg-tweet-date {
+    font-size: 10px;
+    color: #3a4558;
+    letter-spacing: 0.04em;
+}
+
+.tg-tweet-metrics {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+    font-size: 10px;
+    color: #4a5568;
+}
+
+.tg-empty-state {
+    padding: 20px;
+    text-align: center;
+    font-size: 10px;
+    color: #2a3040;
+    line-height: 1.8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}

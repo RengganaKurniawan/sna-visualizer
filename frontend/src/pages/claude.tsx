@@ -352,12 +352,12 @@ function TestGraph() {
                 )}
 
             </aside>
-            
-            {/* NODE DETAIL  */}
+
+            {/* FLOATING NODE DETAIL PANEL */}
             <div className={`tg-node-float ${selectedNode ? "tg-node-float--visible" : ""}`}>
                 {selectedNode && (
                     <>
-                       <div className="tg-node-header">
+                        <div className="tg-node-header">
                             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
                                 <div>
                                     <div className="tg-node-username">@{selectedNode.username}</div>
@@ -368,7 +368,7 @@ function TestGraph() {
                                     onClick={() => setSelectedNode(null)}
                                 >✕</button>
                             </div>
-                        </div> 
+                        </div>
                         <div className="tg-tweet-list">
                             {selectedNode.tweets.length === 0 ? (
                                 <div className="tg-empty-state">No tweets captured<br />for this user</div>
@@ -392,7 +392,7 @@ function TestGraph() {
                         </div>
                     </>
                 )}
-            </div>
+            </div>            
         </div>
     )
 };
