@@ -1,12 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body, html { overflow: hidden; }
+.tg-root *, .tg-root *::before, .tg-root *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 .tg-root {
     font-family: 'Space Mono', monospace;
-    background: #0a0c10;
+    /* background: #0a0c10; */
+    background: #c8d0e0;
     color: #c8d0e0;
     width: 100vw;
     height: 100vh;

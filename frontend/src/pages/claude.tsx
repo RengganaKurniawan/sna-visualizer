@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import cytoscape, { NodeDefinition, EdgeDefinition } from "cytoscape"
 import "../assets/TestGraph.css"
 
@@ -12,11 +13,12 @@ type GraphData = {
     };
 };
 
-const COMMUNITY_COLORS = [
-    "#E63946", "#2196F3", "#4CAF50", "#FF9800", "#9C27B0", 
-    "#00BCD4", "#FFEB3B", "#F06292", "#795548", "#607D8B", 
-    "#00E676", "#FF6D00", 
-]
+function generateColor(index: number): string {
+    const hue = (index * 137.508) % 360; // cycle hue color with golden ration
+    const saturation = 55 + (index % 3) * 15 // greyness + (index % level of saturation) + gap each level
+    const lightness = 45 + (index % 2) * 15 // darkness + (index % level to keep colors readable) + lightness color
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
 
 const EDGE_COLORS: Record<string, string> = {
     reply:    "#4C9BE8",
@@ -37,7 +39,8 @@ function ToggelSwitch({ checked, onChange }: {checked: boolean; onChange: () => 
 }
 
 // Main
-function TestGraph() {
+function Graph() {
+    const navigate = useNavigate();
     const [graph, setGraph] = useState<GraphData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -50,7 +53,7 @@ function TestGraph() {
         name: string;
         tweets: { id: string; text: string; created_at: string; metrics: any }[];
     } | null>(null);
-    const [edgeMode, setEdgeMode] = useState<"typed" | "collapsed">("typed");
+    const [edgeMode, setEdgeMode] = useState<"typed" | "collapsed">("collapsed");
     const detailedEdgesRef = useRef<EdgeDefinition[]>([]);
     const collapsedEdgesRef = useRef<EdgeDefinition[]>([]);
     const communityIdsRef = useRef<number[]>([]);
@@ -61,6 +64,7 @@ function TestGraph() {
             if (!cyInstance.current) return next;
 
             if (next) {
+                // bikin node parent - kotak container
                 communityIdsRef.current.forEach(cid => {
                     if (!cyInstance.current!.$(`#community_${cid}`).length) {
                         cyInstance.current!.add({
@@ -69,9 +73,10 @@ function TestGraph() {
                         });
                     }
                 });
+                // pindahin setiap komunitas ke parent
                 cyInstance.current.nodes().filter(n => !n.isParent()).forEach(node => {
                     node.move({ parent: `community_${node.data('community')}` });
-                    node.style('background-color', COMMUNITY_COLORS[node.data('community') % COMMUNITY_COLORS.length] ?? '#A0A0A0');
+                    node.style('background-color', generateColor(node.data('community')));
                 });
             } else {
                 cyInstance.current.nodes().filter(n => !n.isParent()).forEach(node => {
@@ -85,7 +90,7 @@ function TestGraph() {
 
             // cyInstance.current.layout({
             //     name: 'cose',
-            //     // @ts-ignore
+
             //     // nodeOverlap: 20,
             //     // // componentSpacing: 50,
             //     // nodeRepulsion: 5000,
@@ -119,6 +124,7 @@ function TestGraph() {
         setGraph(null);
         setShowCommunity(false);
         setSelectedNode(null);
+        setEdgeMode("collapsed")
         setFilename(file.name)
 
         if (cyInstance.current) {
@@ -151,7 +157,7 @@ function TestGraph() {
             ...node,
             data: {
                 ...node.data,
-                communityColor: COMMUNITY_COLORS[node.data.community % COMMUNITY_COLORS.length] ?? "#A0A0A0",
+                communityColor: generateColor(node.data.community)
             },
         }));
 
@@ -190,7 +196,7 @@ function TestGraph() {
 
         cyInstance.current = cytoscape({
             container: cyRef.current,
-            elements: { nodes, edges },
+            elements: { nodes, edges: collapsedEdgesRef.current },
             style: [
                 {
                     selector: "node[in_degree_centrality]",
@@ -232,7 +238,7 @@ function TestGraph() {
                 // idealEdgeLength: 150,        // jarak ideal antar node yang terhubung
                 nodeOverlap: 100,             // seberapa jauh node didorong saat overlap
                 componentSpacing: 100,       // jarak antar cluster/komponen terpisah
-                nodeRepulsion: 50000,       // semakin besar = node makin saling menjauh
+                nodeRepulsion: 100000,       // semakin besar = node makin saling menjauh
             },
         });
 
@@ -269,6 +275,9 @@ function TestGraph() {
                         {nodeCount} nodes · {edgeCount} edges
                     </span>
                 )}
+                <button className="tg-header-back" onClick={() => navigate("/")}>
+                    ← Home
+                </button>
             </header>
 
             {/* CANVAS */}
@@ -344,20 +353,20 @@ function TestGraph() {
                                 <ToggelSwitch checked={showCommunity} onChange={handleToggleCommunity} />    
                             </div>
                             <div className="tg-toggle-row">
-                                <span className="tg-toggle-label">Collapse Edges</span>
-                                <ToggelSwitch checked={edgeMode === "collapsed"} onChange={handleToggleEdgeMode} />
+                                <span className="tg-toggle-label">Show interactions</span>
+                                <ToggelSwitch checked={edgeMode === "typed"} onChange={handleToggleEdgeMode} />
                             </div>
                         </div>
                     </div>
                 )}
 
             </aside>
-
-            {/* FLOATING NODE DETAIL PANEL */}
+            
+            {/* NODE DETAIL  */}
             <div className={`tg-node-float ${selectedNode ? "tg-node-float--visible" : ""}`}>
                 {selectedNode && (
                     <>
-                        <div className="tg-node-header">
+                       <div className="tg-node-header">
                             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
                                 <div>
                                     <div className="tg-node-username">@{selectedNode.username}</div>
@@ -368,7 +377,7 @@ function TestGraph() {
                                     onClick={() => setSelectedNode(null)}
                                 >✕</button>
                             </div>
-                        </div>
+                        </div> 
                         <div className="tg-tweet-list">
                             {selectedNode.tweets.length === 0 ? (
                                 <div className="tg-empty-state">No tweets captured<br />for this user</div>
@@ -392,9 +401,9 @@ function TestGraph() {
                         </div>
                     </>
                 )}
-            </div>            
+            </div>
         </div>
     )
 };
 
-export default TestGraph;
+export default Graph;

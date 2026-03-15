@@ -1,27 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ─── SCOPED RESET ──────────────────────────────────────── */
+.tg-root *, .tg-root *::before, .tg-root *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-body, html { overflow: hidden; }
-
+/* ─── ROOT ──────────────────────────────────────────────── */
 .tg-root {
     font-family: 'Space Mono', monospace;
-    background: #0a0c10;
-    color: #c8d0e0;
+    background: #070b0d;
+    color: #e8eaeb;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
     position: relative;
 }
 
-/* HEADER */
+/* ─── HEADER ────────────────────────────────────────────── */
 .tg-header {
     position: fixed;
     top: 0; left: 0; right: 0;
     height: 52px;
-    background: rgba(10,12,16,0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255,255,255,0.07);
+    background: rgba(7, 11, 13, 0.88);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(29, 155, 240, 0.12);
     display: flex;
     align-items: center;
     padding: 0 24px;
@@ -32,15 +36,15 @@ body, html { overflow: hidden; }
 .tg-header-dot {
     width: 8px; height: 8px;
     border-radius: 50%;
-    background: #4CE87A;
-    box-shadow: 0 0 8px #4CE87A;
+    background: #1D9BF0;
+    box-shadow: 0 0 8px #1D9BF0;
     flex-shrink: 0;
     animation: pulse 2.4s ease-in-out infinite;
 }
 
 @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+    50%       { opacity: 0.3; }
 }
 
 .tg-header-title {
@@ -49,32 +53,51 @@ body, html { overflow: hidden; }
     font-size: 15px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #eef2ff;
+    color: #f0f2f3;
     flex: 1;
 }
 
 .tg-header-meta {
     font-size: 10px;
     letter-spacing: 0.12em;
-    color: #4a5568;
+    color: rgba(232, 234, 235, 0.3);
     text-transform: uppercase;
 }
 
-/* CANVAS */
+.tg-header-back {
+    background: none;
+    border: 1px solid rgba(29, 155, 240, 0.25);
+    color: rgba(232, 234, 235, 0.6);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.tg-header-back:hover {
+    border-color: #1D9BF0;
+    color: #1D9BF0;
+    background: rgba(29, 155, 240, 0.06);
+}
+
+/* ─── CANVAS ────────────────────────────────────────────── */
 .tg-canvas {
     position: fixed;
     top: 52px; left: 0; right: 0; bottom: 0;
-    /* background: #0a0c10; */
-    background: #eef2ff;
+    background: #070b0d;
     background-image:
-        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(33,150,243,0.04) 0%, transparent 70%),
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(29, 155, 240, 0.04) 0%, transparent 70%),
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
     background-size: 100% 100%, 40px 40px, 40px 40px;
     z-index: 0;
 }
 
-/* CANVAS PLACEHOLDER */
+/* ─── CANVAS PLACEHOLDER ────────────────────────────────── */
 .tg-canvas-placeholder {
     position: fixed;
     top: 52px; left: 0; right: 280px; bottom: 0;
@@ -88,6 +111,7 @@ body, html { overflow: hidden; }
 
 .tg-placeholder-icon {
     font-size: 48px;
+    color: #1D9BF0;
     opacity: 0.08;
     margin-bottom: 16px;
 }
@@ -96,17 +120,17 @@ body, html { overflow: hidden; }
     font-size: 11px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #2a3040;
+    color: rgba(232, 234, 235, 0.2);
 }
 
-/* RIGHT PANEL */
+/* ─── RIGHT PANEL ───────────────────────────────────────── */
 .tg-panel {
     position: fixed;
     top: 52px; right: 0; bottom: 0;
     width: 280px;
-    background: rgba(12,14,20,0.92);
+    background: rgba(7, 11, 13, 0.95);
     backdrop-filter: blur(16px);
-    border-left: 1px solid rgba(255,255,255,0.07);
+    border-left: 1px solid rgba(29, 155, 240, 0.1);
     z-index: 50;
     display: flex;
     flex-direction: column;
@@ -115,7 +139,7 @@ body, html { overflow: hidden; }
 
 .tg-panel-section {
     padding: 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .tg-section-label {
@@ -123,14 +147,14 @@ body, html { overflow: hidden; }
     font-weight: 700;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #3a4558;
+    color: rgba(232, 234, 235, 0.25);
     margin-bottom: 12px;
 }
 
-/* FILE UPLOAD */
+/* ─── FILE UPLOAD ───────────────────────────────────────── */
 .tg-upload-area {
     position: relative;
-    border: 1px dashed rgba(76,155,232,0.35);
+    border: 1px dashed rgba(29, 155, 240, 0.3);
     border-radius: 6px;
     padding: 16px;
     text-align: center;
@@ -139,8 +163,8 @@ body, html { overflow: hidden; }
 }
 
 .tg-upload-area:hover {
-    border-color: rgba(76,155,232,0.7);
-    background: rgba(76,155,232,0.04);
+    border-color: rgba(29, 155, 240, 0.6);
+    background: rgba(29, 155, 240, 0.04);
 }
 
 .tg-upload-area input[type="file"] {
@@ -156,20 +180,23 @@ body, html { overflow: hidden; }
     font-size: 22px;
     margin-bottom: 6px;
     display: block;
+    color: #1D9BF0;
+    opacity: 0.6;
 }
 
 .tg-upload-text {
     font-size: 11px;
-    color: #4C9BE8;
+    color: #1D9BF0;
     line-height: 1.5;
 }
 
 .tg-upload-hint {
     font-size: 10px;
-    color: #3a4558;
+    color: rgba(232, 234, 235, 0.2);
     margin-top: 4px;
 }
 
+/* ─── STATUS ────────────────────────────────────────────── */
 .tg-status {
     margin-top: 10px;
     font-size: 10px;
@@ -180,7 +207,7 @@ body, html { overflow: hidden; }
 
 .tg-status.loading { color: #E8D94C; }
 .tg-status.error   { color: #E63946; }
-.tg-status.success { color: #4CE87A; }
+.tg-status.success { color: #1D9BF0; }
 
 .tg-status-spinner {
     width: 10px; height: 10px;
@@ -194,11 +221,11 @@ body, html { overflow: hidden; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* LEGEND */
+/* ─── LEGEND ────────────────────────────────────────────── */
 .tg-legend-list {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 8px;
 }
 
 .tg-legend-item {
@@ -206,8 +233,9 @@ body, html { overflow: hidden; }
     align-items: center;
     gap: 10px;
     font-size: 11px;
-    color: "#8899aa";
-    letter-spacing: 0.4em;
+    color: rgba(232, 234, 235, 0.45);
+    letter-spacing: 0.06em;
+    text-transform: capitalize;
 }
 
 .tg-legend-line {
@@ -217,7 +245,7 @@ body, html { overflow: hidden; }
     flex-shrink: 0;
 }
 
-/* TOGGLES */
+/* ─── TOGGLES ───────────────────────────────────────────── */
 .tg-toggle-list {
     display: flex;
     flex-direction: column;
@@ -233,13 +261,13 @@ body, html { overflow: hidden; }
 
 .tg-toggle-label {
     font-size: 11px;
-    color: #8899aa;
+    color: rgba(232, 234, 235, 0.45);
     letter-spacing: 0.04em;
     user-select: none;
     cursor: pointer;
 }
 
-/* Custom toggle switch */
+/* ─── TOGGLE SWITCH ─────────────────────────────────────── */
 .tg-switch {
     position: relative;
     width: 34px; height: 18px;
@@ -253,14 +281,14 @@ body, html { overflow: hidden; }
     position: absolute;
     inset: 0;
     border-radius: 9px;
-    background: #1a2030;
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     transition: background 0.2s;
 }
 
 .tg-switch input:checked ~ .tg-switch-track {
-    background: rgba(76,232,122,0.2);
-    border-color: rgba(76,232,122,0.4);
+    background: rgba(29, 155, 240, 0.2);
+    border-color: rgba(29, 155, 240, 0.4);
 }
 
 .tg-switch-thumb {
@@ -268,28 +296,26 @@ body, html { overflow: hidden; }
     top: 3px; left: 3px;
     width: 10px; height: 10px;
     border-radius: 50%;
-    background: #3a4558;
+    background: rgba(232, 234, 235, 0.2);
     transition: transform 0.2s, background 0.2s;
 }
 
-.tg-switch input:checked ~ .tg-switch-track ~ .tg-switch-thumb,
 .tg-switch input:checked + .tg-switch-track + .tg-switch-thumb {
     transform: translateX(16px);
-    background: #4CE87A;
-    box-shadow: 0 0 6px #4CE87A88;
+    background: #1D9BF0;
+    box-shadow: 0 0 6px rgba(29, 155, 240, 0.6);
 }
 
-/* FLOATING NODE DETAIL PANEL */
+/* ─── NODE DETAIL ───────────────────────────────────────── */
 .tg-node-float {
     position: fixed;
     top: 52px;
     right: 280px;
     bottom: 0;
     width: 300px;
-    background: rgba(10, 12, 18, 0.96);
+    background: rgba(7, 11, 13, 0.97);
     backdrop-filter: blur(20px);
-    border-left: 1px solid rgba(76, 155, 232, 0.15);
-    border-top: 1px solid rgba(76, 155, 232, 0.1);
+    border-left: 1px solid rgba(29, 155, 240, 0.12);
     z-index: 49;
     display: flex;
     flex-direction: column;
@@ -298,7 +324,7 @@ body, html { overflow: hidden; }
     opacity: 0;
     pointer-events: none;
     transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
-    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.4);
 }
 
 .tg-node-float--visible {
@@ -314,12 +340,12 @@ body, html { overflow: hidden; }
 
 .tg-node-float .tg-tweet-list::-webkit-scrollbar { width: 4px; }
 .tg-node-float .tg-tweet-list::-webkit-scrollbar-track { background: transparent; }
-.tg-node-float .tg-tweet-list::-webkit-scrollbar-thumb { background: #1e2535; border-radius: 2px; }
+.tg-node-float .tg-tweet-list::-webkit-scrollbar-thumb { background: rgba(29, 155, 240, 0.2); border-radius: 2px; }
 
 .tg-node-float-close {
     background: none;
     border: none;
-    color: #3a4558;
+    color: rgba(232, 234, 235, 0.25);
     font-size: 12px;
     cursor: pointer;
     padding: 2px 4px;
@@ -329,57 +355,56 @@ body, html { overflow: hidden; }
     font-family: 'Space Mono', monospace;
 }
 
-.tg-node-float-close:hover {
-    color: #E63946;
-}
+.tg-node-float-close:hover { color: #E63946; }
 
 .tg-node-header {
     padding: 16px 20px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .tg-node-username {
     font-family: 'Syne', sans-serif;
     font-weight: 700;
     font-size: 14px;
-    color: #4C9BE8;
+    color: #1D9BF0;
     letter-spacing: 0.04em;
 }
 
 .tg-node-name {
     font-size: 10px;
-    color: #3a4558;
+    color: rgba(232, 234, 235, 0.25);
     margin-top: 3px;
     letter-spacing: 0.06em;
 }
 
+/* ─── TWEETS ────────────────────────────────────────────── */
 .tg-tweet-list {
     padding: 12px 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px
+    gap: 12px;
 }
 
 .tg-tweet {
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 1px solid rgba(255, 255, 255, 0.04);
     border-radius: 6px;
     padding: 10px 12px;
-    background: rgba(255,255,255,0.015);
+    background: rgba(255, 255, 255, 0.015);
     transition: border-color 0.15s;
 }
 
-.tg-tweet:hover { border-color: rgba(76,155,232,0.25);}
+.tg-tweet:hover { border-color: rgba(29, 155, 240, 0.2); }
 
 .tg-tweet-text {
     font-size: 11px;
     line-height: 1.6;
-    color: #c0ccd8;
+    color: rgba(232, 234, 235, 0.7);
     margin-bottom: 6px;
 }
 
 .tg-tweet-date {
     font-size: 10px;
-    color: #3a4558;
+    color: rgba(232, 234, 235, 0.25);
     letter-spacing: 0.04em;
 }
 
@@ -388,14 +413,14 @@ body, html { overflow: hidden; }
     gap: 12px;
     margin-top: 6px;
     font-size: 10px;
-    color: #4a5568;
+    color: rgba(232, 234, 235, 0.3);
 }
 
 .tg-empty-state {
     padding: 20px;
     text-align: center;
     font-size: 10px;
-    color: #2a3040;
+    color: rgba(232, 234, 235, 0.15);
     line-height: 1.8;
     text-transform: uppercase;
     letter-spacing: 0.1em;
