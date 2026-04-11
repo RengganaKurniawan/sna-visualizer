@@ -1,5 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
 
+/* --- THEME --- */
+:root {
+    --bg-root: #070b0d;
+    --bg-canvas: #0d1117;
+    --bg-header: rgba(7, 11, 13, 0.88);
+    --bg-panel: rgba(7, 11, 13, 0.95);
+    --bg-tweet: rgba(255, 255, 255, 0.015);
+    --text-base: #f0f2f3;
+    --text-primary: #ffffff;
+    --text-secondary: #8b98a5; 
+    --text-muted: #71767b;     
+    --border-subtle: #2f3336;  
+    --border-accent: rgba(29, 155, 240, 0.2);
+    --grid-line: rgba(255, 255, 255, 0.04);
+}
+
+.light-mode {
+    --bg-root: #ffffff;
+    --bg-canvas: #f7f9f9;
+    --bg-header: rgba(255, 255, 255, 0.88);
+    --bg-panel: rgba(255, 255, 255, 0.95);
+    --bg-tweet: rgba(0, 0, 0, 0.02);
+    --text-base: #0f1419;
+    --text-primary: #000000;
+    --text-secondary: #536471; 
+    --text-muted: #8b98a5;     
+    --border-subtle: #eff3f4;  
+    --border-accent: rgba(29, 155, 240, 0.25);
+    --grid-line: rgba(0, 0, 0, 0.04);
+}
+
+/* --- BASE STYLES --- */
 .tg-root *, .tg-root *::before, .tg-root *::after {
   box-sizing: border-box;
   margin: 0;
@@ -8,12 +40,13 @@
 
 .tg-root {
     font-family: 'Space Mono', monospace;
-    background: #070b0d;
-    color: #e8eaeb;
+    background: var(--bg-root);
+    color: var(--text-base);
     width: 100vw;
     height: 100vh;
     overflow: hidden;
     position: relative;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* HEADER */
@@ -21,14 +54,15 @@
     position: fixed;
     top: 0; left: 0; right: 0;
     height: 52px;
-    background: rgba(7, 11, 13, 0.88);
+    background: var(--bg-header);
     backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(29, 155, 240, 0.12);
+    border-bottom: 1px solid var(--border-accent);
     display: flex;
     align-items: center;
     padding: 0 24px;
     z-index: 100;
     gap: 14px;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .tg-header-dot {
@@ -51,21 +85,21 @@
     font-size: 15px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #f0f2f3;
+    color: var(--text-primary);
     flex: 1;
 }
 
 .tg-header-meta {
     font-size: 10px;
     letter-spacing: 0.12em;
-    color: rgba(232, 234, 235, 0.3);
+    color: var(--text-muted);
     text-transform: uppercase;
 }
 
 .tg-header-back {
     background: none;
-    border: 1px solid rgba(29, 155, 240, 0.25);
-    color: rgba(232, 234, 235, 0.6);
+    border: 1px solid var(--border-accent);
+    color: var(--text-secondary);
     font-family: 'Space Mono', monospace;
     font-size: 10px;
     letter-spacing: 0.1em;
@@ -86,13 +120,14 @@
 .tg-canvas {
     position: fixed;
     top: 52px; left: 0; right: 0; bottom: 0;
-    background: #0d1117;
+    background: var(--bg-canvas);
     background-image:
         radial-gradient(ellipse 80% 60% at 50% 40%, rgba(29, 155, 240, 0.07) 0%, transparent 70%),
-        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 100% 100%, 40px 40px, 40px 40px;
     z-index: 0;
+    transition: background 0.3s ease;
 }
 
 /* CANVAS PLACEHOLDER */
@@ -118,7 +153,7 @@
     font-size: 11px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: rgba(232, 234, 235, 0.2);
+    color: var(--text-muted);
 }
 
 /* RIGHT PANEL */
@@ -126,18 +161,19 @@
     position: fixed;
     top: 52px; right: 0; bottom: 0;
     width: 280px;
-    background: rgba(7, 11, 13, 0.95);
+    background: var(--bg-panel);
     backdrop-filter: blur(16px);
-    border-left: 1px solid rgba(29, 155, 240, 0.1);
+    border-left: 1px solid var(--border-accent);
     z-index: 50;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .tg-panel-section {
     padding: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .tg-section-label {
@@ -145,14 +181,14 @@
     font-weight: 700;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: rgba(232, 234, 235, 0.25);
+    color: var(--text-muted);
     margin-bottom: 12px;
 }
 
 /* FILE UPLOAD */
 .tg-upload-area {
     position: relative;
-    border: 1px dashed rgba(29, 155, 240, 0.3);
+    border: 1px dashed #1D9BF0;
     border-radius: 6px;
     padding: 16px;
     text-align: center;
@@ -179,7 +215,6 @@
     margin-bottom: 6px;
     display: block;
     color: #1D9BF0;
-    opacity: 0.6;
 }
 
 .tg-upload-text {
@@ -190,7 +225,7 @@
 
 .tg-upload-hint {
     font-size: 10px;
-    color: rgba(232, 234, 235, 0.2);
+    color: var(--text-muted);
     margin-top: 4px;
 }
 
@@ -230,7 +265,7 @@
     align-items: center;
     gap: 10px;
     font-size: 11px;
-    color: rgba(232, 234, 235, 0.45);
+    color: var(--text-secondary);
     letter-spacing: 0.06em;
     text-transform: capitalize;
 }
@@ -258,7 +293,7 @@
 
 .tg-toggle-label {
     font-size: 11px;
-    color: rgba(232, 234, 235, 0.45);
+    color: var(--text-secondary);
     letter-spacing: 0.04em;
     user-select: none;
     cursor: pointer;
@@ -278,8 +313,8 @@
     position: absolute;
     inset: 0;
     border-radius: 9px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--border-subtle);
+    border: 1px solid var(--border-subtle);
     transition: background 0.2s;
 }
 
@@ -293,7 +328,7 @@
     top: 3px; left: 3px;
     width: 10px; height: 10px;
     border-radius: 50%;
-    background: rgba(232, 234, 235, 0.2);
+    background: var(--text-muted);
     transition: transform 0.2s, background 0.2s;
 }
 
@@ -310,9 +345,9 @@
     right: 280px;
     bottom: 0;
     width: 300px;
-    background: rgba(7, 11, 13, 0.97);
+    background: var(--bg-panel);
     backdrop-filter: blur(20px);
-    border-left: 1px solid rgba(29, 155, 240, 0.12);
+    border-left: 1px solid var(--border-accent);
     z-index: 49;
     display: flex;
     flex-direction: column;
@@ -320,7 +355,7 @@
     transform: translateX(100%);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease, background 0.3s ease;
     box-shadow: -12px 0 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -342,7 +377,7 @@
 .tg-node-float-close {
     background: none;
     border: none;
-    color: rgba(232, 234, 235, 0.25);
+    color: var(--text-muted);
     font-size: 12px;
     cursor: pointer;
     padding: 2px 4px;
@@ -356,7 +391,7 @@
 
 .tg-node-header {
     padding: 16px 20px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .tg-node-username {
@@ -369,7 +404,7 @@
 
 .tg-node-name {
     font-size: 10px;
-    color: rgba(232, 234, 235, 0.25);
+    color: var(--text-muted);
     margin-top: 3px;
     letter-spacing: 0.06em;
 }
@@ -383,10 +418,10 @@
 }
 
 .tg-tweet {
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
     border-radius: 6px;
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.015);
+    background: var(--bg-tweet);
     transition: border-color 0.15s;
 }
 
@@ -395,13 +430,13 @@
 .tg-tweet-text {
     font-size: 11px;
     line-height: 1.6;
-    color: rgba(232, 234, 235, 0.7);
+    color: var(--text-secondary);
     margin-bottom: 6px;
 }
 
 .tg-tweet-date {
     font-size: 10px;
-    color: rgba(232, 234, 235, 0.25);
+    color: var(--text-muted);
     letter-spacing: 0.04em;
 }
 
@@ -410,14 +445,14 @@
     gap: 12px;
     margin-top: 6px;
     font-size: 10px;
-    color: rgba(232, 234, 235, 0.3);
+    color: var(--text-muted);
 }
 
 .tg-empty-state {
     padding: 20px;
     text-align: center;
     font-size: 10px;
-    color: rgba(232, 234, 235, 0.15);
+    color: var(--text-muted);
     line-height: 1.8;
     text-transform: uppercase;
     letter-spacing: 0.1em;

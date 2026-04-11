@@ -1,3 +1,20 @@
+/* --- THEME --- */
+:root {
+  --nav-bg: rgba(7, 11, 13, 0.88);
+  --nav-border: rgba(29, 155, 240, 0.12);
+  --glow-blue-text: rgba(29, 155, 240, 0.5);
+  --glow-blue-btn: rgba(29, 155, 240, 0.45);
+  --glow-cta: rgba(29, 155, 240, 0.08);
+}
+
+.light-mode {
+  --nav-bg: rgba(255, 255, 255, 0.88);
+  --nav-border: rgba(29, 155, 240, 0.25);
+  --glow-blue-text: rgba(29, 155, 240, 0.65);
+  --glow-blue-btn: rgba(29, 155, 240, 0.35);
+  --glow-cta: rgba(29, 155, 240, 0.15);
+}
+
 /* ANIMATIONS */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
@@ -18,16 +35,20 @@
 .scroll-bounce    { animation: bounce-y 2s ease-in-out infinite; }
 
 /* GLOW EFFECT */
-.glow-blue        { text-shadow: 0 0 20px rgba(29, 155, 240, 0.5); }
+.glow-blue        { 
+  text-shadow: 0 0 20px var(--glow-blue-text); 
+  transition: text-shadow 0.3s ease;
+}
 .glow-dot         { box-shadow: 0 0 6px #1D9BF0; }
-.glow-btn:hover   { box-shadow: 0 0 24px rgba(29, 155, 240, 0.45); transform: translateY(-1px); }
+.glow-btn:hover   { box-shadow: 0 0 24px var(--glow-blue-btn); transform: translateY(-1px); }
 .glow-card:hover  { transform: translateY(-3px); }
 
 /* BACKDROP BLUR */
 .nav-blur {
-  background: rgba(7, 11, 13, 0.88);
+  background: var(--nav-bg);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(29, 155, 240, 0.12);
+  border-bottom: 1px solid var(--nav-border);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 /* BACKDROP NEON BLUR */
@@ -35,8 +56,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(29,155,240,0.08), transparent);
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, var(--glow-cta), transparent);
   pointer-events: none;
+  transition: background 0.3s ease;
 }
 
 /* FONT */

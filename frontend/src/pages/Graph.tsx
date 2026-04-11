@@ -4,7 +4,7 @@ import cytoscape, { NodeDefinition, EdgeDefinition } from "cytoscape"
 import {
     EDGE_COLORS,
     generateColor,
-    CYTOSCAPE_STYLES,
+    getCytoscapeStyles,
     CYTOSCAPE_LAYOUT
 } from "../utils/graphUtils";
 import { useGraphUpload } from "../hooks/useGraphUpload";
@@ -13,8 +13,13 @@ import GraphSidebar from "../components/GraphSidebar";
 import TweetDetailPanel from "../components/TweetDetailPanel";
 import "../assets/TestGraph.css"
 
+type GraphProps = {
+    theme: 'dark' | 'light';
+    onToggleTheme: () => void;
+}
+
 // Main
-function Graph() {
+function Graph({ theme, onToggleTheme }: GraphProps) {
     const navigate = useNavigate();
     
     const cyRef = useRef<HTMLDivElement | null>(null);
@@ -41,6 +46,12 @@ function Graph() {
             cyInstance.current = null;
         }
     })
+
+    useEffect(() => {
+        if (cyInstance.current) {
+            cyInstance.current.style(getCytoscapeStyles(theme));
+        }
+    }, [theme]);
     
     const handleToggleCommunity = () => {
         setShowCommunity(prev => {
@@ -151,7 +162,7 @@ function Graph() {
         cyInstance.current = cytoscape({
             container: cyRef.current,
             elements: { nodes, edges: collapsedEdgesRef.current },
-            style: CYTOSCAPE_STYLES,
+            style: getCytoscapeStyles(theme),
             layout: CYTOSCAPE_LAYOUT,
         });
 
@@ -183,6 +194,8 @@ function Graph() {
                 graphExists={!!graph}
                 nodeCount={nodeCount}
                 edgeCount={edgeCount}
+                theme={theme}
+                onToggleTheme={onToggleTheme}
             />
 
             {/* CANVAS */}
@@ -215,7 +228,6 @@ function Graph() {
                 edgeMode={edgeMode}
                 onToggleEdgeMode={handleToggleEdgeMode}
             />
-
             {/* PANEL */}
             <TweetDetailPanel 
                 node={selectedNode} 

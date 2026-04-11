@@ -64,12 +64,14 @@ export default function GraphSidebar(props: GraphSidebarProps) {
             {/* Toggles */}
             {props.graphExists && (
                 <div className="tg-panel-section">
-                    <div className="tg-section-label">Display</div>
+                    <div className="tg-section-label">Display Settings</div>
                     <div className="tg-toggle-list">
+                        {/* communities */}
                         <div className="tg-toggle-row">
                             <span className="tg-toggle-label">Show Communities</span>
                             <ToggleSwitch checked={props.showCommunity} onChange={props.onToggleCommunity} />
                         </div>
+                        {/* interactions */}
                         <div className="tg-toggle-row">
                             <span className="tg-toggle-label">Show interactions</span>
                             <ToggleSwitch checked={props.edgeMode === "typed"} onChange={props.onToggleEdgeMode} />

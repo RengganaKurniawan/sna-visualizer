@@ -1,16 +1,29 @@
-import { Routes, Route } from "react-router-dom";
-import TestPage from "./pages/TestPage";
-import Graph from "./pages/Graph";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
-import Claude from "./pages/claude";
-
+import Graph from "./pages/Graph";
+import TestPage from "./pages/TestPage";
 
 function App(){
+    const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+
+    useEffect(() => {
+        if (theme === 'light') {
+            document.body.classList.add('light-mode');
+        } else {
+            document.body.classList.remove('light-mode');
+        }
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    }
+
     return (
         <Routes>
-            <Route path="/" element={<Dashboard />}/>
+            <Route path="/" element={<Dashboard theme={theme} onToggleTheme={toggleTheme} />}/>
+            <Route path="/visualize-graph" element={<Graph theme={theme} onToggleTheme={toggleTheme}/>}/>
             <Route path="/debugPage" element={<TestPage />}/>
-            <Route path="/visualize-graph" element={<Graph />}/>
         </Routes>
     )
 }

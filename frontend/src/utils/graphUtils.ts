@@ -29,7 +29,7 @@ export function generateColor(index: number, total: number): string {
     }
 }
 
-export const CYTOSCAPE_STYLES: cytoscape.StylesheetStyle[] = [
+export const getCytoscapeStyles = (theme: 'dark' | 'light'): cytoscape.StylesheetStyle[] => [
     {
         selector: "node[in_degree_centrality]",
         style: {
@@ -37,9 +37,12 @@ export const CYTOSCAPE_STYLES: cytoscape.StylesheetStyle[] = [
             "font-size": "11px",
             "text-valign": "bottom",
             "text-halign": "center",
-            "color": "#ffffff",
-            "text-outline-color": "#0d1117", 
+            
+            "color": theme === 'dark' ? "#ffffff" : "#0f1419", 
+            
+            "text-outline-color": theme === 'dark' ? "#0d1117" : "#f7f9f9", 
             "text-outline-width": 3,          
+            
             "background-color": "#1D9BF0",
             width: "mapData(in_degree_centrality, 0, 1, 15, 100)",
             height: "mapData(in_degree_centrality, 0, 1, 15, 100)",
@@ -64,10 +67,11 @@ export const CYTOSCAPE_STYLES: cytoscape.StylesheetStyle[] = [
             "curve-style": "bezier",
             "target-arrow-color": "data(edgeColor)",
             "target-arrow-shape": "triangle",
-            opacity: 0.7,
+            
+            opacity: theme === 'dark' ? 0.7 : 0.85,
         },
     },
-]
+];
 
 export const CYTOSCAPE_LAYOUT: cytoscape.LayoutOptions = {
     name: "cose",
