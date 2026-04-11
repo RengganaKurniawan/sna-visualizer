@@ -1,36 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cytoscape, { NodeDefinition, EdgeDefinition } from "cytoscape"
+import {
+    GraphData,
+    EDGE_COLORS,
+    generateColor,
+    CYTOSCAPE_STYLES,
+    CYTOSCAPE_LAYOUT
+} from "../utils/graphUtils";
+
 import "../assets/TestGraph.css"
 
-type GraphData = {
-    data: any[];
-    directed: boolean;
-    multigraph: boolean;
-    elements: {
-        nodes: { data: Record<string, any> }[];
-        edges: { data: Record<string, any> }[];
-    };
-};
-
-function generateColor(index: number, total: number): string {
-    if (total <= 12) {
-        const hue = (index / total) * 360;
-        return `hsl(${hue}, 70%, 55%)`;
-    } else {
-        const hue = (index * 137.508) % 360;
-        const saturation = 55 + (index % 3) * 15;
-        const lightness = 45 + (index % 2) * 15;
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    }
-}
-
-const EDGE_COLORS: Record<string, string> = {
-    reply:    "#4C9BE8",
-    retweet:  "#4CE87A",
-    quote:    "#E8724C",
-    mentions: "#E8D94C",
-};
 
 // Toggle Switch
 function ToggelSwitch({ checked, onChange }: {checked: boolean; onChange: () => void }) {
@@ -206,52 +186,8 @@ function Graph() {
         cyInstance.current = cytoscape({
             container: cyRef.current,
             elements: { nodes, edges: collapsedEdgesRef.current },
-            style: [
-                {
-                    selector: "node[in_degree_centrality]",
-                    style: {
-                        label: "data(label)",
-                        "font-size": "11px",
-                        "text-valign": "bottom",
-                        "text-halign": "center",
-                        "color": "#ffffff",
-                        "text-outline-color": "#0d1117", 
-                        "text-outline-width": 3,          
-                        "background-color": "#1D9BF0",
-                        width: "mapData(in_degree_centrality, 0, 1, 15, 100)",
-                        height: "mapData(in_degree_centrality, 0, 1, 15, 100)",
-                    },
-                },
-                {
-                    selector: ":parent",
-                    style: {
-                        label: "",
-                        "background-color": "#1D9BF0",              
-                        "background-opacity": 0.05,                  
-                        "border-width": 1,                           
-                        "border-color": "rgba(29,155,240,0.3)",      
-                        "border-style": "dashed",
-                    },
-                },
-                {
-                    selector: "edge",
-                    style: {
-                        width: "mapData(weight, 1, 10, 1, 6)",
-                        "line-color": "data(edgeColor)",
-                        "curve-style": "bezier",
-                        "target-arrow-color": "data(edgeColor)",
-                        "target-arrow-shape": "triangle",
-                        opacity: 0.7,
-                    },
-                },
-            ],
-            layout: { 
-                name: "cose",
-                // idealEdgeLength: 150,        // jarak ideal antar node yang terhubung
-                nodeOverlap: 100,             // seberapa jauh node didorong saat overlap
-                componentSpacing: 100,       // jarak antar cluster/komponen terpisah
-                nodeRepulsion: 100000,       // semakin besar = node makin saling menjauh
-            },
+            style: CYTOSCAPE_STYLES,
+            layout: CYTOSCAPE_LAYOUT,
         });
 
         cyInstance.current.on("tap", "node", (evt) => {
