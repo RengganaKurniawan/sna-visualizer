@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cytoscape, { NodeDefinition, EdgeDefinition } from "cytoscape"
 import {
-    GraphData,
     EDGE_COLORS,
     generateColor,
     CYTOSCAPE_STYLES,
