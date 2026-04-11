@@ -1,55 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cytoscape, { NodeDefinition, EdgeDefinition } from "cytoscape"
+import {
+    EDGE_COLORS,
+    generateColor,
+    CYTOSCAPE_STYLES,
+    CYTOSCAPE_LAYOUT
+} from "../utils/graphUtils";
+import { useGraphUpload } from "../hooks/useGraphUpload";
+import GraphHeader from "../components/GraphHeader";
+import GraphSidebar from "../components/GraphSidebar";
+import TweetDetailPanel from "../components/TweetDetailPanel";
 import "../assets/TestGraph.css"
-
-type GraphData = {
-    data: any[];
-    directed: boolean;
-    multigraph: boolean;
-    elements: {
-        nodes: { data: Record<string, any> }[];
-        edges: { data: Record<string, any> }[];
-    };
-};
-
-function generateColor(index: number, total: number): string {
-    if (total <= 12) {
-        const hue = (index / total) * 360;
-        return `hsl(${hue}, 70%, 55%)`;
-    } else {
-        const hue = (index * 137.508) % 360;
-        const saturation = 55 + (index % 3) * 15;
-        const lightness = 45 + (index % 2) * 15;
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    }
-}
-
-const EDGE_COLORS: Record<string, string> = {
-    reply:    "#4C9BE8",
-    retweet:  "#4CE87A",
-    quote:    "#E8724C",
-    mentions: "#E8D94C",
-};
-
-// Toggle Switch
-function ToggelSwitch({ checked, onChange }: {checked: boolean; onChange: () => void }) {
-    return ( 
-        <label className="tg-switch">
-            <input type="checkbox" checked={checked} onChange={onChange} />
-            <span className="tg-switch-track"/>
-            <span className="tg-switch-thumb"/>
-        </label>
-    )
-}
 
 // Main
 function Graph() {
     const navigate = useNavigate();
-    const [graph, setGraph] = useState<GraphData | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [filename, setFilename] = useState<string | null>(null);
+    
     const cyRef = useRef<HTMLDivElement | null>(null);
     const cyInstance = useRef<cytoscape.Core | null>(null);
     const [showCommunity, setShowCommunity] = useState(false);
@@ -59,10 +26,22 @@ function Graph() {
         tweets: { id: string; text: string; created_at: string; metrics: any }[];
     } | null>(null);
     const [edgeMode, setEdgeMode] = useState<"typed" | "collapsed">("collapsed");
+    
     const detailedEdgesRef = useRef<EdgeDefinition[]>([]);
     const collapsedEdgesRef = useRef<EdgeDefinition[]>([]);
     const communityIdsRef = useRef<number[]>([]);
+    
+    const { graph, loading, error, filename, handleFileUpload } = useGraphUpload(() => {
+        setShowCommunity(false);
+        setSelectedNode(null);
+        setEdgeMode("collapsed");
 
+        if (cyInstance.current) {
+            cyInstance.current.destroy();
+            cyInstance.current = null;
+        }
+    })
+    
     const handleToggleCommunity = () => {
         setShowCommunity(prev => {
             const next = !prev;
@@ -120,40 +99,6 @@ function Graph() {
         });
     };
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setLoading(true);
-        setError(null);
-        setGraph(null);
-        setShowCommunity(false);
-        setSelectedNode(null);
-        setEdgeMode("collapsed")
-        setFilename(file.name)
-
-        if (cyInstance.current) {
-            cyInstance.current.destroy();
-            cyInstance.current = null;
-        }
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        fetch("http://127.0.0.1:5000/api/process", {
-            method: "POST",
-            body: formData,
-        })
-            .then((res) => {
-                if (!res.ok) return res.json()
-                    .then((err) => Promise.reject(err.error));
-                return res.json();
-            })
-            .then((data) => setGraph(data))
-            .catch((err) => setError(String(err)))
-            .finally(() => setLoading(false));
-    };
-
     useEffect(() => {
         if (!graph || !cyRef.current || cyInstance.current)
             return;
@@ -206,52 +151,8 @@ function Graph() {
         cyInstance.current = cytoscape({
             container: cyRef.current,
             elements: { nodes, edges: collapsedEdgesRef.current },
-            style: [
-                {
-                    selector: "node[in_degree_centrality]",
-                    style: {
-                        label: "data(label)",
-                        "font-size": "11px",
-                        "text-valign": "bottom",
-                        "text-halign": "center",
-                        "color": "#ffffff",
-                        "text-outline-color": "#0d1117", 
-                        "text-outline-width": 3,          
-                        "background-color": "#1D9BF0",
-                        width: "mapData(in_degree_centrality, 0, 1, 15, 100)",
-                        height: "mapData(in_degree_centrality, 0, 1, 15, 100)",
-                    },
-                },
-                {
-                    selector: ":parent",
-                    style: {
-                        label: "",
-                        "background-color": "#1D9BF0",              
-                        "background-opacity": 0.05,                  
-                        "border-width": 1,                           
-                        "border-color": "rgba(29,155,240,0.3)",      
-                        "border-style": "dashed",
-                    },
-                },
-                {
-                    selector: "edge",
-                    style: {
-                        width: "mapData(weight, 1, 10, 1, 6)",
-                        "line-color": "data(edgeColor)",
-                        "curve-style": "bezier",
-                        "target-arrow-color": "data(edgeColor)",
-                        "target-arrow-shape": "triangle",
-                        opacity: 0.7,
-                    },
-                },
-            ],
-            layout: { 
-                name: "cose",
-                // idealEdgeLength: 150,        // jarak ideal antar node yang terhubung
-                nodeOverlap: 100,             // seberapa jauh node didorong saat overlap
-                componentSpacing: 100,       // jarak antar cluster/komponen terpisah
-                nodeRepulsion: 100000,       // semakin besar = node makin saling menjauh
-            },
+            style: CYTOSCAPE_STYLES,
+            layout: CYTOSCAPE_LAYOUT,
         });
 
         cyInstance.current.on("tap", "node", (evt) => {
@@ -276,21 +177,13 @@ function Graph() {
     const edgeCount = graph?.elements.edges.length ?? 0;
 
     return(
-        <div className="tg-root">
-
+        <div className="tg-root"> 
             {/* HEADER */}
-            <header className="tg-header">
-                <span className="tg-header-dot" />
-                <span className="tg-header-title">Graph Visualization</span>
-                {graph && (
-                    <span className="tg-header-meta">
-                        {nodeCount} nodes · {edgeCount} edges
-                    </span>
-                )}
-                <button className="tg-header-back" onClick={() => navigate("/")}>
-                    ← Home
-                </button>
-            </header>
+            <GraphHeader
+                graphExists={!!graph}
+                nodeCount={nodeCount}
+                edgeCount={edgeCount}
+            />
 
             {/* CANVAS */}
             <div
@@ -309,111 +202,25 @@ function Graph() {
                     <div className="tg-placeholder-text">Upload a JSON file to begin</div>
                 </div>
             )}
-            
-            {/* RIGHT PANEL */}
-            <aside className="tg-panel">
 
-                {/* File Upload */}
-                <div className="tg-panel-section">
-                    <div className="tg-section-label">Data Source</div>
-                    <div className="tg-upload-area">
-                        <input type="file" accept=".json" onChange={handleFileUpload} />
-                        <span className="tg-upload-icon">⬡</span>
-                        <div className="tg-upload-text">Drop JSON file or click</div>
-                        <div className="tg-upload-hint">.json graph export</div>
-                    </div>
-                    {loading && (
-                        <div className="tg-status loading">
-                            <span className="tg-status-spinner" />
-                            Processing {filename}...
-                        </div>
-                    )}
-                    {error && (
-                        <div className="tg-status error">
-                            X {error}
-                        </div>
-                    )}
-                    {graph && !loading && (
-                        <div className="tg-status success">
-                            ✓ {filename}
-                        </div>
-                    )}
-                </div>
+            {/* SIDEBAR */}
+            <GraphSidebar 
+                onFileUpload={handleFileUpload}
+                loading={loading}
+                error={error}
+                filename={filename}
+                graphExists={!!graph}
+                showCommunity={showCommunity}
+                onToggleCommunity={handleToggleCommunity}
+                edgeMode={edgeMode}
+                onToggleEdgeMode={handleToggleEdgeMode}
+            />
 
-                {/* Legend */}
-                {graph && (
-                    <div className="tg-panel-section">
-                        <div className="tg-section-label">Edge Types</div>
-                        <div className="tg-legend-list">
-                            {Object.entries(EDGE_COLORS).map(([type, color]) => (
-                                <div key={type} className="tg-legend-item">
-                                    <span className="tg-legend-line" style={{ background: color }} />
-                                    {type}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Toggles */}
-                {graph && (
-                    <div className="tg-panel-section">
-                        <div className="tg-section-label">Display</div>
-                        <div className="tg-toggle-list">
-                            <div className="tg-toggle-row">
-                                <span className="tg-toggle-label">Show Communities</span>
-                                <ToggelSwitch checked={showCommunity} onChange={handleToggleCommunity} />    
-                            </div>
-                            <div className="tg-toggle-row">
-                                <span className="tg-toggle-label">Show interactions</span>
-                                <ToggelSwitch checked={edgeMode === "typed"} onChange={handleToggleEdgeMode} />
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-            </aside>
-            
-            {/* NODE DETAIL  */}
-            <div className={`tg-node-float ${selectedNode ? "tg-node-float--visible" : ""}`}>
-                {selectedNode && (
-                    <>
-                       <div className="tg-node-header">
-                            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                                <div>
-                                    <div className="tg-node-username">@{selectedNode.username}</div>
-                                    <div className="tg-node-name">{selectedNode.name}</div>
-                                </div>
-                                <button
-                                    className="tg-node-float-close"
-                                    onClick={() => setSelectedNode(null)}
-                                >✕</button>
-                            </div>
-                        </div> 
-                        <div className="tg-tweet-list">
-                            {selectedNode.tweets.length === 0 ? (
-                                <div className="tg-empty-state">No tweets captured<br />for this user</div>
-                            ) : (
-                                selectedNode.tweets.map(tweet => (
-                                    <div key={tweet.id} className="tg-tweet">
-                                        <div className="tg-tweet-text">{tweet.text}</div>
-                                        <div className="tg-tweet-date">
-                                            {new Date(tweet.created_at).toLocaleString()}
-                                        </div>
-                                        {tweet.metrics && (
-                                            <div className="tg-tweet-metrics">
-                                                <span>🔁 {tweet.metrics.retweet_count}</span>
-                                                <span>💬 {tweet.metrics.reply_count}</span>
-                                                <span>❤️ {tweet.metrics.like_count}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </>
-                )}
-            </div>
+            {/* PANEL */}
+            <TweetDetailPanel 
+                node={selectedNode} 
+                onClose={() => setSelectedNode(null)} 
+            />
         </div>
     )
 };
