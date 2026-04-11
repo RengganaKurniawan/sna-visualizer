@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import cytoscape, { NodeDefinition, EdgeDefinition } from "cytoscape"
 import "../assets/TestGraph.css"
 
@@ -12,11 +13,16 @@ type GraphData = {
     };
 };
 
-function generateColor(index: number): string {
-    const hue = (index * 137.508) % 360; // cycle hue color with golden ration
-    const saturation = 55 + (index % 3) * 15 // greyness + (index % level of saturation) + gap each level
-    const lightness = 45 + (index % 2) * 15 // darkness + (index % level to keep colors readable) + lightness color
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+function generateColor(index: number, total: number): string {
+    if (total <= 12) {
+        const hue = (index / total) * 360;
+        return `hsl(${hue}, 70%, 55%)`;
+    } else {
+        const hue = (index * 137.508) % 360;
+        const saturation = 55 + (index % 3) * 15;
+        const lightness = 45 + (index % 2) * 15;
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
 }
 
 const EDGE_COLORS: Record<string, string> = {
@@ -39,6 +45,7 @@ function ToggelSwitch({ checked, onChange }: {checked: boolean; onChange: () => 
 
 // Main
 function Graph() {
+    const navigate = useNavigate();
     const [graph, setGraph] = useState<GraphData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -74,12 +81,12 @@ function Graph() {
                 // pindahin setiap komunitas ke parent
                 cyInstance.current.nodes().filter(n => !n.isParent()).forEach(node => {
                     node.move({ parent: `community_${node.data('community')}` });
-                    node.style('background-color', generateColor(node.data('community')));
+                    node.style('background-color', generateColor(node.data('community'), communityIdsRef.current.length));
                 });
             } else {
                 cyInstance.current.nodes().filter(n => !n.isParent()).forEach(node => {
                     node.move({ parent: null });
-                    node.style('background-color', '#A0A0A0');
+                    node.style('background-color', '#1D9BF0');
                 });
                 communityIdsRef.current.forEach(cid => {
                     cyInstance.current!.$(`#community_${cid}`).remove();
@@ -151,11 +158,15 @@ function Graph() {
         if (!graph || !cyRef.current || cyInstance.current)
             return;
 
+        const communityIds = [...new Set(graph.elements.nodes.map(n => n.data.community as number))];
+        communityIdsRef.current = communityIds;
+        const totalCommunities = communityIds.length;
+
         const nodes = graph.elements.nodes.map((node): NodeDefinition => ({
             ...node,
             data: {
                 ...node.data,
-                communityColor: generateColor(node.data.community)
+                communityColor: generateColor(node.data.community, totalCommunities)
             },
         }));
 
@@ -184,13 +195,13 @@ function Graph() {
                         source: edge.data!.source,
                         target: edge.data!.target,
                         weight: Number(edge.data!.weight) || 1,
-                        edgeColor: "#999999"
+                        edgeColor: "#4a6080"
                     }
                 });
             }
         });
         collapsedEdgesRef.current = Array.from(edgeMap.values());
-        communityIdsRef.current = [...new Set(nodes.map(n => n.data!.community as number))];
+        
 
         cyInstance.current = cytoscape({
             container: cyRef.current,
@@ -200,10 +211,13 @@ function Graph() {
                     selector: "node[in_degree_centrality]",
                     style: {
                         label: "data(label)",
-                        "font-size": "10px",
+                        "font-size": "11px",
                         "text-valign": "bottom",
                         "text-halign": "center",
-                        "background-color": "#A0A0A0",
+                        "color": "#ffffff",
+                        "text-outline-color": "#0d1117", 
+                        "text-outline-width": 3,          
+                        "background-color": "#1D9BF0",
                         width: "mapData(in_degree_centrality, 0, 1, 15, 100)",
                         height: "mapData(in_degree_centrality, 0, 1, 15, 100)",
                     },
@@ -212,10 +226,10 @@ function Graph() {
                     selector: ":parent",
                     style: {
                         label: "",
-                        "background-color": "#cccccc",
-                        "background-opacity": 0.1,          // transparan supaya tidak mengganggu
-                        "border-width": 2,
-                        "border-color": "#ccc",
+                        "background-color": "#1D9BF0",              
+                        "background-opacity": 0.05,                  
+                        "border-width": 1,                           
+                        "border-color": "rgba(29,155,240,0.3)",      
                         "border-style": "dashed",
                     },
                 },
@@ -273,6 +287,9 @@ function Graph() {
                         {nodeCount} nodes · {edgeCount} edges
                     </span>
                 )}
+                <button className="tg-header-back" onClick={() => navigate("/")}>
+                    ← Home
+                </button>
             </header>
 
             {/* CANVAS */}
