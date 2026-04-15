@@ -7,10 +7,12 @@
     --bg-header: rgba(7, 11, 13, 0.88);
     --bg-panel: rgba(7, 11, 13, 0.95);
     --bg-tweet: rgba(255, 255, 255, 0.015);
-    --text-base: #f0f2f3;
+    
+    --text-base: #ffffff;
     --text-primary: #ffffff;
-    --text-secondary: #8b98a5; 
-    --text-muted: #71767b;     
+    --text-secondary: #ffffff; 
+    --text-muted: #ffffff; 
+    
     --border-subtle: #2f3336;  
     --border-accent: rgba(29, 155, 240, 0.2);
     --grid-line: rgba(255, 255, 255, 0.04);
@@ -22,10 +24,12 @@
     --bg-header: rgba(255, 255, 255, 0.88);
     --bg-panel: rgba(255, 255, 255, 0.95);
     --bg-tweet: rgba(0, 0, 0, 0.02);
-    --text-base: #0f1419;
+    
+    --text-base: #000000;
     --text-primary: #000000;
-    --text-secondary: #536471; 
-    --text-muted: #8b98a5;     
+    --text-secondary: #000000; 
+    --text-muted: #000000;
+    
     --border-subtle: #eff3f4;  
     --border-accent: rgba(29, 155, 240, 0.25);
     --grid-line: rgba(0, 0, 0, 0.04);

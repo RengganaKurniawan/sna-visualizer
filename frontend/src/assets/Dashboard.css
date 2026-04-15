@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
 /* --- THEME --- */
 :root {
   --nav-bg: rgba(7, 11, 13, 0.88);
@@ -5,6 +7,10 @@
   --glow-blue-text: rgba(29, 155, 240, 0.5);
   --glow-blue-btn: rgba(29, 155, 240, 0.45);
   --glow-cta: rgba(29, 155, 240, 0.08);
+  --bg-root: #070b0d;
+  --bg-alt: #090d0f;
+  --text-base: #ffffff;
+  --text-muted: #ffffff;
 }
 
 .light-mode {
@@ -13,6 +19,10 @@
   --glow-blue-text: rgba(29, 155, 240, 0.65);
   --glow-blue-btn: rgba(29, 155, 240, 0.35);
   --glow-cta: rgba(29, 155, 240, 0.15);
+  --bg-root: #f7f9f9;
+  --bg-alt: #ffffff;
+  --text-base: #000000;
+  --text-muted: #000000;
 }
 
 /* ANIMATIONS */
@@ -61,5 +71,23 @@
   transition: background 0.3s ease;
 }
 
-/* FONT */
-* { font-family: 'Courier New', 'Lucida Console', monospace !important; }
+/* --- TYPOGRAPHY FIXES --- */
+body {
+  font-family: 'Space Mono', monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .glow-blue {
+  font-family: 'Syne', sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+p, span, div {
+  font-weight: 400;
+}
+
+strong, .font-bold {
+  font-weight: 700;
+}

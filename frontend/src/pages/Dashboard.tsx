@@ -41,11 +41,9 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
     const [scrolled, setScrolled] = useState(false);
     
     useEffect(() => {
-        // detek scroll
         const fn = () => setScrolled(window.scrollY > 40);
         window.addEventListener("scroll", fn);
 
-        // section visibility
         const sections = ["about", "how", "create"];
         const observers: IntersectionObserver[] = [];
 
@@ -64,7 +62,7 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
                         setActive(reverseMap[id]);
                     }
                 },
-                { threshold: 0.2} // berapa section muncul biar ganti
+                { threshold: 0.2} 
             );
 
             observer.observe(el);
@@ -80,13 +78,9 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
     const goto = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth"})
 
     const isLight = theme === 'light';
-    const bgRoot = isLight ? "bg-[#f7f9f9]" : "bg-[#070b0d]";
-    const bgAlt = isLight ? "bg-[#ffffff]" : "bg-[#090d0f]";
-    const textBase = isLight ? "text-[#0f1419]" : "text-[#f0f2f3]";
-    const textMuted = isLight ? "text-[#536471]" : "text-[#8b98a5]";
 
     return (
-        <div className={`min-h-screen ${bgRoot} ${textBase} overflow-y-hidden transition-colors duration-300`}>
+        <div className="min-h-screen bg-[var(--bg-root)] text-[var(--text-base)] overflow-y-hidden transition-colors duration-300">
 
             {/* NAVIGATION */}
             <nav className={`fixed inset-x-0 top-0 z-50 flex items-center justify-between px-12 py-4 transition-all duration-300 ${scrolled ? "nav-blur" : ""}`}>
@@ -94,7 +88,7 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
                 {/* LOGO */}
                 <div className="flex items-center gap-2">
                     <span className="text-xl text-[#1d98f0] glow-blue">⬡</span>
-                    <span className={`text-base font-bold tracking-[0.1em] ${isLight ? "text-[#0f1419]" : "text-[#f0f2f3]"}`}>NodeX</span>
+                    <span className="text-base font-bold tracking-[0.1em] text-[var(--text-base)]">NodeX</span>
                 </div>
                 
                 {/* LINKS & THEME */}
@@ -107,7 +101,7 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
                                 className={`px-4 py-2 rounded text-xs tracking-widest border-none cursor-pointer transition-all duration-200
                                     ${active === l
                                         ? "text-[#1D98F0] bg-[#1D98f0]/10 font-bold"
-                                        : `${textMuted} hover:${textBase} hover:bg-black/5 bg-transparent`
+                                        : "text-[var(--text-muted)] hover:text-[var(--text-base)] hover:bg-black/5 bg-transparent"
                                     }`}
                             >
                                 {l}
@@ -132,11 +126,11 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
                         Twitter Interaction Visualizer
                     </div>
 
-                    <h1 className={`fade-up delay-1 text-[clamp(2.4rem,5vw,4rem)] font-black leading-[1.08] tracking-[-0.02em] ${isLight ? "text-[#0f1419]" : "text-[#f0f2f3]"} mb-6`}>
+                    <h1 className="fade-up delay-1 text-[clamp(2.4rem,5vw,4rem)] font-black leading-[1.08] tracking-[-0.02em] text-[var(--text-base)] mb-6">
                        Map the <span className="text-[#1D9BF0] glow-blue">network</span><br />behind every tweet
                     </h1>
 
-                    <p className={`fade-up delay-2 text-[1.05rem] leading-[1.75] ${textMuted} max-w-lg mb-10`}>
+                    <p className="fade-up delay-2 text-[1.05rem] leading-[1.75] text-[var(--text-muted)] max-w-lg mb-10">
                         NodeX transform raw Twitter/X data into an interactive graph —
                         revealing communities, influence, and the hidden structure of online conversations.
                     </p>
@@ -150,7 +144,7 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
                         </button>
                         <button
                             onClick={() => goto("how")}
-                            className={`text-sm tracking-widest px-8 py-3 rounded border bg-transparent cursor-pointer transition-all duration-200 ${textMuted} border-gray-400 hover:border-gray-500 hover:${textBase}`}
+                            className="text-sm tracking-widest px-8 py-3 rounded border bg-transparent cursor-pointer transition-all duration-200 text-[var(--text-muted)] border-gray-400 hover:border-gray-500 hover:text-[var(--text-base)]"
                         >
                             See how it works
                         </button>
@@ -160,7 +154,7 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
                         {EDGE_TYPES.map(({ type, color }) => (
                             <div key={type} className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color, boxShadow: `0 0 6px ${color}` }} />
-                                <span className={`text-[0.75rem] font-bold tracking-widest ${textMuted}`}>{type}</span>
+                                <span className="text-[0.75rem] font-bold tracking-widest text-[var(--text-muted)]">{type}</span>
                             </div>
                         ))}
                     </div>
@@ -173,13 +167,13 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
             </section>
 
             {/* ABOUT */}
-            <section id="about" className={`py-28 px-12 ${bgRoot} transition-colors duration-300`}>
+            <section id="about" className="py-28 px-12 bg-[var(--bg-root)] transition-colors duration-300">
                 <div className="max-w-5xl mx-auto">
                     <p className="text-[0.68rem] tracking-[0.2em] uppercase text-[#1D9BF0] mb-3">About</p>
-                    <h2 className={`text-[clamp(1.8rem,3vw,2.6rem)] font-black leading-[1.12] tracking-tight ${isLight ? "text-[#0f1419]" : "text-[#f0f2f3]"} mb-6`}>
+                    <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] font-black leading-[1.12] tracking-tight text-[var(--text-base)] mb-6">
                         What is <span className="text-[#1D9BF0] glow-blue">NodeX</span>?
                     </h2>
-                    <p className={`text-base leading-[1.8] ${textMuted} max-w-2xl mb-16`}>
+                    <p className="text-base leading-[1.8] text-[var(--text-muted)] max-w-2xl mb-16">
                         NodeX is an interactive network graph tool built for researchers, journalists, and analysts
                         who want to understand how information flows on Twitter/X.
                     </p>
@@ -188,8 +182,8 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
                         {FEATURES.map((f) => (
                             <div key={f.title} className={`glow-card border rounded-lg p-7 transition-all duration-300 hover:border-[#1D9BF0]/40 ${isLight ? "bg-white border-gray-200 shadow-sm" : "bg-white/[0.025] border-white/[0.06] hover:bg-[#1D9BF0]/[0.04]"}`}>
                                 <div className="text-2xl text-[#1D9BF0] mb-5" style={{ textShadow: "0 0 12px rgba(29, 155, 240, 0.5)"}}>{f.icon}</div>
-                                <div className={`text-sm font-bold tracking-wide ${isLight ? "text-[#0f1419]" : "text-[#f0f2f3]"} mb-2`}>{f.title}</div>
-                                <div className={`text-xs leading-relaxed ${textMuted}`}>{f.desc}</div>
+                                <div className="text-sm font-bold tracking-wide text-[var(--text-base)] mb-2">{f.title}</div>
+                                <div className="text-xs leading-relaxed text-[var(--text-muted)]">{f.desc}</div>
                             </div>
                         ))}
                     </div>
@@ -197,10 +191,10 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
             </section>
 
             {/* HOW IT WORKS */}
-            <section id="how" className={`py-28 px-12 ${bgAlt} transition-colors duration-300`}>
+            <section id="how" className="py-28 px-12 bg-[var(--bg-alt)] transition-colors duration-300">
                 <div className="max-w-5xl mx-auto">
                     <p className="text-[0.68rem] tracking-[0.2em] uppercase text-[#1D9BF0] mb-3">How It Works</p>
-                    <h2 className={`text-[clamp(1.8rem,3vw,2.6rem)] font-black leading-[1.12] tracking-tight ${isLight ? "text-[#0f1419]" : "text-[#f0f2f3]"} mb-16`}>
+                    <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] font-black leading-[1.12] tracking-tight text-[var(--text-base)] mb-16">
                         Three steps to your <span className="text-[#1D9BF0] glow-blue">network graph</span>
                     </h2>
 
@@ -209,8 +203,8 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
                             <div key={s.num}>
                                 <div className="text-5xl font-black text-[#1D9BF0] leading-none tracking-tighter mb-5">{s.num}</div>
                                 <div className="w-8 h-0.5 bg-[#1D9BF0]/25 mb-5" />
-                                <div className={`text-sm font-bold ${isLight ? "text-[#0f1419]" : "text-[#f0f2f3]"} mb-2`}>{s.title}</div>
-                                <div className={`text-xs leading-relaxed ${textMuted}`}>{s.desc}</div>
+                                <div className="text-sm font-bold text-[var(--text-base)] mb-2">{s.title}</div>
+                                <div className="text-xs leading-relaxed text-[var(--text-muted)]">{s.desc}</div>
                             </div>
                         ))}
                     </div>
@@ -223,7 +217,7 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
                                     <div className="w-[3px] h-10 rounded-full flex-shrink-0 mt-0.5" style={{ background: color, boxShadow: `0 0 8px ${color}`}} />
                                     <div>
                                         <div className="text-sm font-bold mb-1" style={{ color }}>{type}</div>
-                                        <div className={`text-xs leading-relaxed ${textMuted}`}>{note}</div>
+                                        <div className="text-xs leading-relaxed text-[var(--text-muted)]">{note}</div>
                                     </div>
                                 </div>
                             ))}
@@ -233,13 +227,13 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
             </section>
 
             {/* CTA */}
-            <section id="create" className={`cta-glow relative py-28 px-12 ${bgRoot} border-t border-b ${isLight ? "border-gray-200" : "border-[#1D9BF0]/08"} text-center overflow-hidden transition-colors duration-300`}>
+            <section id="create" className={`cta-glow relative py-28 px-12 bg-[var(--bg-root)] border-t border-b ${isLight ? "border-gray-200" : "border-[#1D9BF0]/08"} text-center overflow-hidden transition-colors duration-300`}>
                 <div className="relative z-10 max-w-md mx-auto">
                     <p className="text-[0.68rem] tracking-[0.2em] uppercase text-[#1D9BF0] mb-3">Create Graph</p>
-                    <h2 className={`text-[clamp(1.8rem,2vw,2.6rem)] font-black leading-[1.12] tracking-tight ${isLight ? "text-[#0f1419]" : "text-[#f0f2f3]"} mb-6`}>
+                    <h2 className="text-[clamp(1.8rem,2vw,2.6rem)] font-black leading-[1.12] tracking-tight text-[var(--text-base)] mb-6">
                         Ready to visualize your <span className="text-[#1D9BF0] glow-blue">network?</span>
                     </h2>
-                    <p className={`text-base leading-[1.8] ${textMuted} mb-10`}>
+                    <p className="text-base leading-[1.8] text-[var(--text-muted)] mb-10">
                         Upload your Twitter JSON export and NodeX will map every interaction into an explorable graph in seconds.
                     </p>
                     <button 
@@ -254,8 +248,8 @@ function Dashboard({ theme, onToggleTheme }: DashboardProps) {
             {/* FOOTER */}
             <footer className={`flex items-center gap-3 px-12 py-7 border-t ${isLight ? "bg-white border-gray-200" : "bg-[#070b0d] border-white/[0.04]"}`}>
                 <span className="text-lg text-[#1D9BF0] glow-blue">⬡</span>
-                <span className={`text-sm font-bold tracking-[0.1em] ${textMuted}`}>NodeX</span>
-                <span className={`ml-auto text-xs font-bold tracking-widest ${textMuted}`}>Built for network analysis</span>
+                <span className="text-sm font-bold tracking-[0.1em] text-[var(--text-muted)]">NodeX</span>
+                <span className="ml-auto text-xs font-bold tracking-widest text-[var(--text-muted)]">Built for network analysis</span>
             </footer>
 
         </div>
