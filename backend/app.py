@@ -9,102 +9,122 @@ import community as community_louvain
 app = Flask(__name__)
 CORS(app)
 
+# validasi struktur data twitter
+def validate_twitter_data(raw_data):
+    if not isinstance(raw_data, dict):
+        return False, "File JSON tidak valid: Format utama harus berupa object (dict)"
+
+    if 'data' not in raw_data:
+        return False, "File JSON tidak valid: Kehilangan atribut 'data' utama"
+    
+    if not isinstance(raw_data.get('data'), list):
+        return False, "File JSON tidak valid: Atribut 'data' harus berupa array/list"
+    
+    includes = raw_data.get('includes')
+    if includes is not None and not isinstance(includes, dict):
+        return False, "File JSON tidak valid: Atribut 'includes' harus berupa object (dict)"
+    
+    return True, "Valid"
+
 # mengambil data interaksi dari raw data
 def extract_interactions(raw_data):
     tweets_data = raw_data.get('data', [])
-    includes_data = raw_data.get('includes', {})
+    includes_data = raw_data.get('includes', {}) or {}
+    
     includes_tweets = includes_data.get('tweets', [])
+    if not isinstance(includes_tweets, list):
+        includes_tweets = []
+
+    includes_users = includes_data.get('users', [])
+    if not isinstance(includes_users, list):
+        includes_users = []
     
     # buat cari author dari referenced tweet
-    original_tweets_lookup = {tweet['id']: tweet for tweet in includes_tweets}
+    original_tweets_lookup = {tweet['id']: tweet for tweet in includes_tweets if isinstance(tweet, dict) and 'id' in tweet}
     
     # buat label usename di node
-    users_lookup = {user['id']: user for user in includes_data.get('users', [])}
+    users_lookup = {user['id']: user for user in includes_users if isinstance(user, dict) and 'id' in user}
 
-    all_tweet_ids = {t['id'] for t in tweets_data}
-    unique_includes = [t for t in includes_tweets if t['id'] not in all_tweet_ids]
+    all_tweet_ids = {tweet['id'] for tweet in tweets_data if isinstance(tweet, dict) and 'id' in tweet}
+    unique_includes = [tweet for tweet in includes_tweets if isinstance(tweet, dict) and tweet.get('id') not in all_tweet_ids]
+    
     all_tweets_for_interaction = tweets_data + unique_includes
 
     interactions = []
 
     for tweet in all_tweets_for_interaction:
+        if not isinstance(tweet, dict):
+            continue
+        
         source_id = tweet.get('author_id')
         if not source_id:
             continue
 
-        # ambil reply
-        if tweet.get('in_reply_to_user_id'):
-            target_id = tweet.get('in_reply_to_user_id')
-            if source_id != target_id:
-                interactions.append({
-                    'source': source_id, 
-                    'target': target_id,
-                    'type': 'reply'
-                })
+        # EXTRACT REPLY
+        in_reply_to = tweet.get('in_reply_to_user_id')
+        if in_reply_to and in_reply_to != source_id:
+            interactions.append({
+                'source': source_id,
+                'target': in_reply_to,
+                'type': 'Reply',
+                'weight': 1,
+                'tweet_id': tweet.get('id', '')
+            })
             
-        # ambil retweet dan quote
-        if 'referenced_tweets' in tweet:
-            for ref_tweet in tweet['referenced_tweets']:
-                ref_type = ref_tweet.get('type')
+        # EXTRACT RETWEET AND QUOTE
+        ref_tweets = tweet.get('referenced_tweets')
+        if isinstance(ref_tweets, list):
+            for ref in ref_tweets:
+                if not isinstance(ref, dict):
+                    continue
                 
-                if ref_type == 'replied_to':
-                    continue
+                ref_type = ref.get('type')
+                ref_id = ref.get('id')
+                
+                if ref_type in ['retweeted', 'quoted'] and ref_id:
+                    target_tweet = original_tweets_lookup.get(ref_id)
 
-                original_tweet = original_tweets_lookup.get(ref_tweet.get('id'))
+                    target_author_id = None
+                    if target_tweet and isinstance(target_tweet, dict):
+                        target_author_id = target_tweet.get('author_id')
 
-                target_id = None
-                if not original_tweet and ref_type == 'retweeted':
-                    # original tweet ga ada di includes antara dihapus/priv account
-                    # cek ke mention pertama karena author
-                    mentions = tweet.get('entities', {}).get('mentions', [])
-                    if mentions:
-                        target_id = mentions[0].get('id')
-                    else:
-                        continue
-                elif original_tweet:
-                    target_id = original_tweet.get('author_id')
-                else:
-                    continue
-
-                if target_id and source_id != target_id:
-                    if ref_type == 'retweeted':
-                        interactions.append({
-                            'source': source_id,
-                            'target': target_id,
-                            'type': 'retweet'
-                        })
-                    elif ref_type == 'quoted':
-                        interactions.append({
-                            'source': source_id,
-                            'target': target_id,
-                            'type': 'quote'
-                        })
+                    if not target_author_id:
+                        entities = tweet.get('entities')
+                        if isinstance(entities, dict):
+                            mentions = entities.get('mentions')
+                            if isinstance(mentions, list) and len(mentions) > 0:
+                                first_mention = mentions[0]
+                                if isinstance(first_mention, dict):
+                                    target_author_id = first_mention.get('id')
                     
+                    if target_author_id and target_author_id != source_id:
+                        edge_type = 'Retweet' if ref_type == 'retweeted' else 'Quote'
+                        interactions.append({
+                            'source': source_id,
+                            'target': target_author_id,
+                            'type': edge_type,
+                            'weight': 1,
+                            'tweet_id': tweet.get('id', '')
+                        })
 
-        # ambil mention
+        # EXTRACT MENTIONS
+        entities = tweet.get('entities')
+        if isinstance(entities, dict): 
+            mentions = entities.get('mentions')
+            if isinstance(mentions, list): 
+                for mention in mentions:
+                    if not isinstance(mention, dict): 
+                        continue
 
-        # skip (RT @) karena bukan mention asli
-        is_retweet = tweet.get('text', '').startswith('RT @')
-        if not is_retweet and 'entities' in tweet and 'mentions' in tweet['entities']:
-            
-            # ambil user yang reply
-            reply_target_id = tweet.get('in_reply_to_user_id')
-            mentions = tweet['entities']['mentions']
-
-            if not reply_target_id and mentions and tweet.get('text', '').startswith('@'):
-                reply_target_id = mentions[0].get('id')
-            
-            
-            for mention in mentions:
-                target_id = mention.get('id')
-                
-                #skip diri sendiri dan target reply
-                if target_id and source_id != target_id and (not reply_target_id or target_id != reply_target_id):
-                    interactions.append({
-                        'source': source_id, 
-                        'target': target_id, 
-                        'type': 'mentions'
-                    })
+                    target_author_id = mention.get('id')
+                    if target_author_id and target_author_id != source_id:
+                        interactions.append({
+                            'source': source_id,
+                            'target': target_author_id,
+                            'type': 'Mention',
+                            'weight': 1,
+                            'tweet_id': tweet.get('id', '')
+                        })
 
     return interactions, users_lookup, tweets_data
 
@@ -115,85 +135,72 @@ def process_data():
         return jsonify({"error": "Tidak ada file yang dimasukan"}), 400
     
     file = request.files['file']
-    if not file or not file.filename.endswith('.json'):
-        return jsonify({"error": "Format file harus.json"}), 400
+    if file.filename == '':
+        return jsonify({"error": "Nama file kosong"}), 400
+    
+    if not file.filename.lower().endswith('.json'):
+        return jsonify({"error": "File harus berekstensi .json"}), 400
     
     try:
-        raw_data = json.load(file.stream)
+        raw_data = json.load(file)
+        
+        is_valid, err_msg = validate_twitter_data(raw_data)
+        if not is_valid:
+            return jsonify({"error": err_msg}), 400
+        
         interactions, users_lookup, tweets_data = extract_interactions(raw_data)
 
         if not interactions:
             return jsonify({"error": "Tidak ada interaksi valid"}), 400
         
+        # NETWORKX GRAPH
         df = pd.DataFrame(interactions)
+        graph = nx.DiGraph()
 
-        # edge weight, menghitung interaksi setiap pasang source, target, type
-        df = (
-            df.groupby(['source', 'target', 'type'])
-            .size()
-            .reset_index(name='weight')
-        )
+        for _, row in df.iterrows():
+            if graph.has_edge(row['source'], row['target']):
+                graph[row['source']][row['target']]['weight'] += row['weight']
+            else:
+                graph.add_edge(row['source'], row['target'], weight=row['weight'], type=row['type'], tweet_id=row['tweet_id'])
 
-        if df.empty:
-            return jsonify({"error": "Tidak ada interaksi setelah agregasi"}), 400
-        
-        # buat graph
-        graph = nx.from_pandas_edgelist(
-            df, 'source', 'target',
-            edge_attr=['type', 'weight'],
-            create_using=nx.MultiDiGraph()
-        )
+        # CALCULATE CENTRALITY & COMMUNITIES
+        in_degree = nx.in_degree_centrality(graph)
+        nx.set_node_attributes(graph, in_degree, 'in_degree_centrality')
 
-        # sentralitas
-        nx.set_node_attributes(graph, nx.in_degree_centrality(graph),  'in_degree_centrality')
-        nx.set_node_attributes(graph, nx.out_degree_centrality(graph), 'out_degree_centrality')
+        undirected_graph = graph.to_undirected()
+        partition = community_louvain.best_partition(undirected_graph)
+        nx.set_node_attributes(graph, partition, 'community')
 
-        # deteksi komunitas
-        if graph.number_of_edges() > 0:
-            partition = community_louvain.best_partition(graph.to_undirected())
-            nx.set_node_attributes(graph, partition, 'community')
-        else:
-            nx.set_node_attributes(graph, 0, 'community')
-
-        # username label
-        for node in graph.nodes():
-            user = users_lookup.get(node, {})
-            graph.nodes[node]['label'] = user.get('username', str(node))
-            graph.nodes[node]['name']     = user.get('name', '')
-            graph.nodes[node]['username'] = user.get('username', str(node))
-
-        # attach tweet to user (tweet can be more than one per user)
-        includes_tweets = raw_data.get('includes', {}).get('tweets', [])
-        all_tweet_ids = {t['id'] for t in tweets_data}
-        unique_includes = [t for t in includes_tweets if t['id'] not in all_tweet_ids]
-        
-        all_tweets = tweets_data + unique_includes
-        
+        # USER METADATA
         user_tweets = {}
-        for tweet in all_tweets:
+        for tweet in tweets_data:
+            if not isinstance(tweet, dict): continue
             author_id = tweet.get('author_id')
-            if not author_id:
-                continue
+            if not author_id: continue
+            
             if author_id not in user_tweets:
                 user_tweets[author_id] = []
             user_tweets[author_id].append({
-                'id':         tweet.get('id', ''),
-                'text':       tweet.get('text', ''),
+                'id': tweet.get('id', ''),
+                'text': tweet.get('text', ''),
                 'created_at': tweet.get('created_at', ''),
-                'metrics':    tweet.get('public_metrics', {}),
+                'metrics': tweet.get('public_metrics', {}),
             })
         
         for node in graph.nodes():
-            tweets = user_tweets.get(node, [])
+            user_info = users_lookup.get(node, {})
+            graph.nodes[node]['username'] = user_info.get('username', str(node))
+            graph.nodes[node]['name'] = user_info.get('name', str(node))
+            graph.nodes[node]['label'] = user_info.get('username', str(node))
             
+            tweets = user_tweets.get(node, [])
             graph.nodes[node]['tweets'] = json.dumps(tweets, ensure_ascii=False)
             graph.nodes[node]['tweet_count'] = len(tweets)
-
         
-        # export ke Cytoscape
+        # EXPORT TO CYTOSCAPE
         graph_frontend = nx.cytoscape_data(graph)
 
-        # pastikan tipe primitif
+        # CEK PRIMITVE DATA TYPE
         for element in graph_frontend.get('elements', {}).get('nodes', []):
             element['data'] = {
                 k: (v if isinstance(v, (str, int, float, bool)) else str(v))
@@ -204,9 +211,9 @@ def process_data():
                 k: (v if isinstance(v, (str, int, float, bool)) else str(v))
                 for k, v in element.get('data', {}).items()
             }
-
+        
         return jsonify(graph_frontend)
-    
+
     except json.JSONDecodeError:
         return jsonify({"error": "File JSON tidak valid"}), 400
     except Exception as e:

@@ -91,3 +91,18 @@ p, span, div {
 strong, .font-bold {
   font-weight: 700;
 }
+
+/* --- LARGE MONITOR SCALING --- */
+/* When the screen is wider than 1600px, increase base size by ~15% */
+@media (min-width: 1600px) {
+  html {
+    font-size: 18px; 
+  }
+}
+
+/* When the screen is wider than 2000px (Ultrawide/4K), increase by ~30% */
+@media (min-width: 2000px) {
+  html {
+    font-size: 21px; 
+  }
+}

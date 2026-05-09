@@ -11,10 +11,10 @@ export type GraphData = {
 };
 
 export const EDGE_COLORS: Record<string, string> = {
-    reply:    "#4C9BE8",
-    retweet:  "#4CE87A",
-    quote:    "#E8724C",
-    mentions: "#E8D94C",
+    reply: "#4C9BE8",
+    retweet: "#4CE87A",
+    quote: "#E8724C",
+    mention: "#E8D94C",
 };
 
 export function generateColor(index: number, total: number): string {
