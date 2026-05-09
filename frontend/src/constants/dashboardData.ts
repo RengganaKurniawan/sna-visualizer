@@ -1,9 +1,10 @@
-export const NAV_LINKS = ["About", "How It Works", "Create Graph"];
+export const NAV_LINKS = ["About", "How It Works", "Create Graph", "Guidelines"];
 
 export const ID_MAP: Record<string, string> = {
   "About": "about",
   "How It Works": "how",
   "Create Graph": "create",
+  "Guidelines": "/guidelines"
 };
 
 export const EDGE_TYPES = [
