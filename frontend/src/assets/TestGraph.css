@@ -461,3 +461,28 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
+
+/* --- LARGE MONITOR OVERRIDES --- */
+@media (min-width: 1600px) {
+    /* 1. Make the sidebar and detail panels wider */
+    .tg-panel { width: 360px; }
+    .tg-canvas-placeholder { right: 360px; }
+    .tg-node-float { width: 380px; right: 360px; }
+
+    /* 2. Scale up the tiny typography */
+    .tg-header-title { font-size: 18px; }
+    .tg-section-label { font-size: 11px; }
+    .tg-toggle-label, .tg-legend-item, .tg-node-username { font-size: 14px; }
+    .tg-tweet-text { font-size: 13px; }
+    
+    /* 3. Scale up the micro-typography */
+    .tg-header-meta, .tg-header-back, .tg-upload-text, 
+    .tg-status, .tg-node-name, .tg-tweet-date, 
+    .tg-tweet-metrics, .tg-upload-hint { font-size: 12px; }
+
+    /* 4. Make the toggle switch a bit larger to match */
+    .tg-switch { width: 42px; height: 22px; }
+    .tg-switch-track { border-radius: 11px; }
+    .tg-switch-thumb { width: 14px; height: 14px; }
+    .tg-switch input:checked + .tg-switch-track + .tg-switch-thumb { transform: translateX(20px); }
+}

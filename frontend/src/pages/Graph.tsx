@@ -126,15 +126,21 @@ function Graph({ theme, onToggleTheme }: GraphProps) {
             },
         }));
 
-        const edges = graph.elements.edges.map((edge): EdgeDefinition=> ({
-            ...edge,
-            data: {
-                source: edge.data.source,
-                target: edge.data.target,
-                ...edge.data,
-                edgeColor: EDGE_COLORS[edge.data.type] ?? "#999999",
-            },
-        }));
+        const edges = graph.elements.edges.map((edge): EdgeDefinition => {
+            const rawType = String(edge.data.type || "").toLowerCase();
+            
+            const color = EDGE_COLORS[rawType] || "#999999";
+
+            return {
+                ...edge,
+                data: {
+                    ...edge.data,
+                    source: edge.data.source,
+                    target: edge.data.target,
+                    edgeColor: color, 
+                },
+            };
+        });
 
         detailedEdgesRef.current = edges;
 
