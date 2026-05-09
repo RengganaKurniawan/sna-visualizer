@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Graph from "./pages/Graph";
 import TestPage from "./pages/TestPage";
+import Guidelines from "./pages/Guidelines";
 
 function App(){
     const [theme, setTheme] = useState<'dark' | 'light'>('dark')
@@ -23,6 +24,8 @@ function App(){
         <Routes>
             <Route path="/" element={<Dashboard theme={theme} onToggleTheme={toggleTheme} />}/>
             <Route path="/visualize-graph" element={<Graph theme={theme} onToggleTheme={toggleTheme}/>}/>
+            <Route path="/guidelines" element={<Guidelines theme={theme} onToggleTheme={toggleTheme} />} />
+
             <Route path="/debugPage" element={<TestPage />}/>
         </Routes>
     )
