@@ -5,7 +5,8 @@ import {
     EDGE_COLORS,
     generateColor,
     getCytoscapeStyles,
-    CYTOSCAPE_LAYOUT
+    CYTOSCAPE_LAYOUT,
+    ROLE_SHAPES,
 } from "../utils/graphUtils";
 import { useGraphUpload } from "../hooks/useGraphUpload";
 import GraphHeader from "../components/GraphHeader";
@@ -31,6 +32,7 @@ function Graph({ theme, onToggleTheme }: GraphProps) {
         tweets: { id: string; text: string; created_at: string; metrics: any }[];
     } | null>(null);
     const [edgeMode, setEdgeMode] = useState<"typed" | "collapsed">("collapsed");
+    const [showRoles, setShowRoles] = useState(false);
     
     const detailedEdgesRef = useRef<EdgeDefinition[]>([]);
     const collapsedEdgesRef = useRef<EdgeDefinition[]>([]);
@@ -139,7 +141,7 @@ function Graph({ theme, onToggleTheme }: GraphProps) {
                     target: edge.data.target,
                     edgeColor: color, 
                 },
-            };
+            }
         });
 
         detailedEdgesRef.current = edges;
@@ -190,6 +192,28 @@ function Graph({ theme, onToggleTheme }: GraphProps) {
         });
     }, [graph]);
 
+    useEffect(() => {
+        if (!cyInstance.current) return;
+
+        cyInstance.current.nodes().forEach((node) => {
+            if (showRoles) {
+                const role = node.data('role') || "Peripheral";
+                const shape = ROLE_SHAPES[role] || "ellipse";
+                
+                node.style({
+                    'shape': shape,
+                    'border-width': role !== "Peripheral" ? 2 : 0,
+                    'border-color': '#ffffff'
+                });
+            } else {
+                node.style({
+                    'shape': 'ellipse',
+                    'border-width': 0
+                });
+            }
+        });
+    }, [showRoles]);
+
     const nodeCount = graph?.elements.nodes.length ?? 0;
     const edgeCount = graph?.elements.edges.length ?? 0;
 
@@ -229,10 +253,15 @@ function Graph({ theme, onToggleTheme }: GraphProps) {
                 error={error}
                 filename={filename}
                 graphExists={!!graph}
+                
                 showCommunity={showCommunity}
                 onToggleCommunity={handleToggleCommunity}
+                
                 edgeMode={edgeMode}
                 onToggleEdgeMode={handleToggleEdgeMode}
+
+                showRoles={showRoles}
+                onToggleRoles={() => setShowRoles(!showRoles)}
             />
             {/* PANEL */}
             <TweetDetailPanel 

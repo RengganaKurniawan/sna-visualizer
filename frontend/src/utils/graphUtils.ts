@@ -17,6 +17,13 @@ export const EDGE_COLORS: Record<string, string> = {
     mention: "#E8D94C",
 };
 
+export const ROLE_SHAPES: Record<string, cytoscape.Css.NodeShape> = {
+    "Community Hub": "star",
+    "Influencer": "triangle",
+    "Broadcaster": "diamond",
+    "Peripheral": "ellipse" 
+};
+
 export function generateColor(index: number, total: number): string {
     if (total <= 12) {
         const hue = (index / total) * 360;

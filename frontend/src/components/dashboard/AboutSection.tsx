@@ -27,6 +27,65 @@ export default function AboutSection({ theme }: AboutProps) {
                         </div>
                     ))}
                 </div>
+                
+                <div className="w-full h-px my-16 bg-gradient-to-r from-transparent via-[#1D9BF0]/30 to-transparent transition-opacity duration-300" />
+
+                {/* node roles */}
+                <div className={`p-8 md:p-10 rounded-xl border ${isLight ? "bg-gray-50 border-gray-200" : "bg-[#0d1117] border-[#2f3336]"}`}>
+                    <div className="mb-8 border-b border-[#1D9BF0]/10 pb-6">
+                        <h3 className="text-xl font-bold text-[var(--text-base)] mb-2">Social Network Analysis (SNA) Roles</h3>
+                        <p className="text-sm text-[var(--text-muted)] max-w-2xl leading-relaxed">
+                            NodeX automatically analyzes the in-degree (mentions received) and out-degree (mentions sent) of every user. Based on the 80th percentile threshold of your specific dataset, key players are visually tagged:
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        {/* hub */}
+                        <div className="flex items-start gap-4">
+                            <div className="text-2xl text-[#1D9BF0] mt-1 drop-shadow-[0_0_8px_rgba(29,155,240,0.5)]">★</div>
+                            <div>
+                                <h4 className="text-sm font-bold text-[var(--text-base)] mb-1">Community Hub</h4>
+                                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                                    <strong>High In / High Out.</strong> The central connectors of the network. They receive a massive amount of attention and actively engage with others in return.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* influencer */}
+                        <div className="flex items-start gap-4">
+                            <div className="text-2xl text-[#1D9BF0] mt-0.5 drop-shadow-[0_0_8px_rgba(29,155,240,0.5)]">▲</div>
+                            <div>
+                                <h4 className="text-sm font-bold text-[var(--text-base)] mb-1">Influencer</h4>
+                                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                                    <strong>High In / Low Out.</strong> Highly targeted by the network. People talk to or about them constantly, but they rarely reply or amplify others.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* broadcaster */}
+                        <div className="flex items-start gap-4">
+                            <div className="text-2xl text-[#1D9BF0] mt-1 drop-shadow-[0_0_8px_rgba(29,155,240,0.5)]">◆</div>
+                            <div>
+                                <h4 className="text-sm font-bold text-[var(--text-base)] mb-1">Broadcaster</h4>
+                                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                                    <strong>Low In / High Out.</strong> The amplifiers. They push large amounts of content, mentions, or retweets outward, but receive little direct engagement back.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* peripheral */}
+                        <div className="flex items-start gap-4">
+                            <div className="text-2xl text-[#1D9BF0] mt-1 drop-shadow-[0_0_8px_rgba(29,155,240,0.5)]">●</div>
+                            <div>
+                                <h4 className="text-sm font-bold text-[var(--text-base)] mb-1">Peripheral</h4>
+                                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                                    <strong>Low In / Low Out.</strong> Standard users forming the outer edges of the conversation. They participate, but don't drive the network's core structure.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     );

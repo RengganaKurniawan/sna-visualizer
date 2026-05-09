@@ -209,8 +209,38 @@ def process_data():
             )
 
         # CALCULATE CENTRALITY
+        in_degree = nx.in_degree_centrality(graph)
+        out_degree = nx.out_degree_centrality(graph)
+
         nx.set_node_attributes(graph, nx.in_degree_centrality(graph),  'in_degree_centrality')
         nx.set_node_attributes(graph, nx.out_degree_centrality(graph), 'out_degree_centrality')
+
+        # CALCULATE USER ROLES
+        in_values = list(in_degree.values())
+        out_values = list(out_degree.values())
+
+        in_values.sort()
+        out_values.sort()
+
+        # 80% considered to be high
+        in_threshold = in_values[int(len(in_values) * 0.80)] if in_values else 0
+        out_threshold = out_values[int(len(out_values) * 0.80)] if out_values else 0
+
+        for node in graph.nodes():
+            node_in = in_degree[node]
+            node_out = out_degree[node]
+
+            if node_in >= in_threshold and node_out >= out_threshold:
+                role = "Community Hub"
+            elif node_in >= in_threshold and node_out < out_threshold:
+                role = "Influencer"
+            elif node_in < in_threshold and node_out >= out_threshold:
+                role = "Broadcaster"
+            else:
+                role = "Peripheral"
+
+            graph.nodes[node]['role'] = role
+
 
         # DETECT COMMUNITIES
         undirected_graph = graph.to_undirected()
